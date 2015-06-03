@@ -1,12 +1,27 @@
-##setwd("/Users/ceccarelli/DataSets/")
-##table <- read.table(file = "Customer.txt", header = TRUE, sep = "|", fill = TRUE, na.strings = "NA")
-##hist(x=table$DiscountPercent,scale="frequency")
+---
+title: "EAAD - Lab 1"
+author: "Greg Ceccarelli"
+date: "June 2, 2015"
+output: pdf_document
+---
 
-##initatilize primes vector to store results into
-##initialize looping variable to firt prime number
+*Question 1*
 
-####QUESTION 1##########
+Write a function in R that takes a positive integer and returns all the prime numbers up to it. Use the Sieve of Eratosthenes (Links to an external site.) for doing this. Following are a few helpful notes.
 
+* The base of the algorithm is that we start from 2 and for every prime number, we cross out all of its multiples up n. In the end, numbers that are not crossed out, are prime.
+* We only need to cross out multiples of numbers which are not yet crossed out.
+* We only need to cross out multiples of prime numbers that are smaller than the square root of  n.
+* The basic structure of your function is like this:  
+
+```
+prime.sieve = function(n) { 
+... 
+return(primes) 
+}
+```
+
+```{r}
 prime.sieve <- function(number, first_prime=2) {
 ##hold a vector of numbers to check in a variable  
 ##start at 2 given the above note using the function's default argument
@@ -36,9 +51,21 @@ print(paste("Your number,", number, ", contains ", length(primes), " primes up t
 return(primes)
 }
 
+prime.sieve(1000)
 
-####QUESTION 2##########
+```
 
+*Question 2*
+
+We want to use Monte Carlo simulation to calculate pi. Here is how:
+
+We generate a large number (call this number n) of randomly distributed x and y coordinates in the range of [-1, +1], and use the formula for a circle with radius=1 and centered on the origin, i.e., x^2 + y^2 = 1, to figure out which of these points are inside and which are outside the circle. Then, we just calculate what fraction of the points are inside and multiply this by the are of the square containing all the coordinates (2*2= 4). The result should be an estimation of pi. 
+
+*  use runif(n, min = -1, max = 1) to generate uniformly distributed random numbers that range from -1 to +1.
+
+* Bonus question: What is the variance of your estimation of pi (calculate this theoretically)? To confirm this, do the above procedure N times, and calculate the variance numerically.
+
+```{r}
 pi.compute <- function(random_numbers) {
 ##initialize x and y vectors based on random_numbers input
   n <-random_numbers
@@ -75,8 +102,6 @@ var(pi.runner())
 var(pi.runner(500))
 var(pi.runner(1000))
 var(pi.runner(500,10000))
-var(pi.runner(1000,10000))
 
+```
 
-##source: http://mathforum.org/library/drmath/view/51909.html
-##source: http://mathfaculty.fullerton.edu/mathews/n2003/montecarlopimod.html
