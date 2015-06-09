@@ -1,0 +1,31 @@
+---
+title: "Lab "
+author: "Greg Ceccarelli"
+date: "June 8, 2015"
+output: pdf_document
+---
+
+Part 1. Multiple Choice (5 points each)
+
+1. e
+2. a
+3. d
+4. 
+5. d
+6. c
+7. c
+8.
+9. 
+
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
