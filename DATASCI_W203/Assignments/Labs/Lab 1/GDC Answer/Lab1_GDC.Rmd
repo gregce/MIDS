@@ -1,0 +1,20 @@
+---
+title: "Lab 1"
+author: "Greg Ceccarelli"
+date: "June 8, 2015"
+output: pdf_document
+---
+
+*Part 1. Multiple Choice (5 points each)*
+
+1. e
+2. a
+3. d
+4. 
+5. d
+6. c
+7. c
+8. d
+9. 
+
+*Part 2a. Variable Manipulations (10 points each)*
