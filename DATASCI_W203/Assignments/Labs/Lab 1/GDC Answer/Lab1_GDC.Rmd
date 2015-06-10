@@ -18,3 +18,49 @@ output: pdf_document
 9. 
 
 *Part 2a. Variable Manipulations (10 points each)*
+
+10. Load the data found in the file, GDPWorldBank.csv into a new dataframe.
+Notice that this dataset includes GDP statistics for the years 2010, 2011, and 2012.
+Create a new variable, gdp_growth, that equals the increase in GDP from 2011 to
+2012 (the nominal increase, not a fractional one). What is the mean of your new
+variable? 
+
+```{r}
+#set up working envrionment
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 1')
+rm( list = ls() )
+
+#load libraries
+library(calibrate) # used to label xy points in eventual scatter
+
+#define function to omit row values where only certain columns are NA
+data.complete <- function(data, desiredCols) {
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+}
+
+##force R not to use scientific notation
+options("scipen"=10, "digits"=4)
+
+##load GDP data as a data frame
+gdp.data <- read.csv("GDP_World_Bank1.csv", sep=",", header = TRUE)
+
+#count number of rows with incomplete entries
+nrow(gdp.data[!complete.cases(gdp.data),])
+gdp.data_complete <- data.complete(gdp.data, c('gdp2011', 'gdp2012'))
+
+#create new nominal variable based on gdp increase
+gdp.data_complete$gdp_growth <- gdp.data_complete$gdp2012 - gdp.data_complete$gdp2011
+
+#create and store mean of new variable
+mx <- mean(gdp.data_complete$gdp_growth)
+paste("mean is: ", mx)
+
+```
+
+11. Create a histogram of your new variable from question 10. Is it normally
+distributed? Describe its shape in terms of the distribution properties from the class. 
+
+
+
+

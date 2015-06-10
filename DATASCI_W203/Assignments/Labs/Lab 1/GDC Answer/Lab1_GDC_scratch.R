@@ -4,6 +4,9 @@
 setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 1')
 rm( list = ls() )
 
+#load libraries
+library(calibrate) # used to label xy points in eventual scatter
+
 #define function to omit row values where only certain columns are NA
 data.complete <- function(data, desiredCols) {
   completeVec <- complete.cases(data[, desiredCols])
@@ -11,7 +14,7 @@ data.complete <- function(data, desiredCols) {
 }
 
 ##force R not to use scientific notation
-options("scipen"=100, "digits"=4)
+options("scipen"=10, "digits"=4)
 
 ##load GDP data as a data frame
 gdp.data <- read.csv("GDP_World_Bank1.csv", sep=",", header = TRUE)
@@ -25,11 +28,11 @@ gdp.data_complete$gdp_growth <- gdp.data_complete$gdp2012 - gdp.data_complete$gd
 
 #create and store mean of new variable
 mx <- mean(gdp.data_complete$gdp_growth)
-mx
+paste("mean is: ", mx)
 
 #store histogram first as a variable to inspect its properties
-histinfo <- hist(gdp.data_complete$gdp_growth, 100)
-histinfo
+#histinfo <- hist(gdp.data_complete$gdp_growth, 100)
+#histinfo
 
 # Question 11
 #view the histogram and observe its shape
@@ -38,8 +41,6 @@ hist(gdp.data_complete$gdp_growth)
 hist(gdp.data_complete$gdp_growth, breaks = 20)
 
 # Question 12
-#capture & print mean for review
-
 
 #create new high_growth variable based on comparison of gdp_growth to population mean
 gdp.data_complete$high_growth <- gdp.data_complete$gdp_growth > mx
@@ -51,6 +52,44 @@ summary(gdp.data_complete$high_growth)
 abline(v = mx, col = "blue", lwd = 2)
 
 #Part 2b. Data Import (25 points)
-patent.data <- read.csv("patent_applications_2012_2013_cleaned.csv", sep=",", header = TRUE)
+#Data Sourced from World Intellectual Property Organization
+#http://ipstats.wipo.int/ipstatv2/index.htm?tab=patent
+#Report Parmaters:
+#Intellectual Property Right: Patent
+#Year Range: 2011 - 2012
+#Reporting Type: Total Count by Filing Office
+#Indicator: 1 - Total patent applications 
 
+#did minor data cleaning in text editor to remove extraneous header lines
+patent.data <- read.csv("patent_applications_2011_2012_cleaned.csv", sep=",", header = TRUE)
+patent.data_complete <- patent.data[c("Office","X2011","X2012")]
+names(patent.data_complete) <- c("Country","PatentApplications2011","PatentApplications2012")
+
+#create growth variable
+patent.data_complete$patent_growth <- patent.data_complete$PatentApplications2012 - patent.data_complete$PatentApplications2011
+
+#merge data together -- keep only those observations that match
+gdp_patent.data_complete <- merge(gdp.data_complete,patent.data_complete,by="Country")
+gdp_patent.data_complete <- data.complete(gdp_patent.data_complete,c('gdp_growth','patent_growth'))
+
+#plot just the nominal values - patent apps vs gdp in 2012
+plot(gdp_patent.data_complete$gdp2012
+  , gdp_patent.data_complete$PatentApplications2012 
+  , log = "xy"
+  , xlab="GDP (log)"
+  , ylab="Patent Applications (log)"
+  , title("Country Patents vs GDP in 2012"))
+
+##final plot
+##this plots the positive growth only, omits negative growth due to log transform
+plot(gdp_patent.data_complete$gdp_growth
+     , gdp_patent.data_complete$patent_growth
+     , log = "xy"
+     , xlab="GDP growth (log)"
+     , ylab="Patent growth (log)"
+     , title("Patent vs GDP growth between 2011-2012")
+     , col= "blue", pch = 19, cex = 1, lty = "solid")
+
+#add country labels to graph
+textxy(gdp_patent.data_complete$gdp_growth, gdp_patent.data_complete$patent_growth, gdp_patent.data_complete$Country)
 
