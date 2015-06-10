@@ -38,7 +38,7 @@ paste("mean is: ", mx)
 #view the histogram and observe its shape
 hist(gdp.data_complete$gdp_growth)
 #change number of breaks to observe slightly different version
-hist(gdp.data_complete$gdp_growth, breaks = 20)
+hist(gdp.data_complete$gdp_growth, breaks = 100)
 
 # Question 12
 
