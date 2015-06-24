@@ -1,0 +1,27 @@
+---
+title: "R Exercise"
+author: "Greg Ceccarelli"
+date: "June 23, 2015"
+output: pdf_document
+---
+
+*Question 1*
+
+Write a function in R that does the following:
+* Takes sample data (e.g., as a vector), mean of the null hypothesis, and population standard deviation, and a Boolean variable indicating whether we want a one-tailed or two-tailed test.
+
+* Returns p-values for the required test (Null is “population mean is the one that the function is fed”) , as well as a Boolean value showing whether the test passes a conventional 5% level or not.
+
+* Choose a sample size and then use rnorm(n, mean, sd) to generate a random sample and test your function.
+
+* Use replicate or sapply to generate a sample and do the test multiple, say 1000, times. Plot the histogram of p-values that you are getting when the Null is true. Is your function calculating Type-I errors correctly?
+
+* Now assume your Null is false. Note: For type-II error calculation, you need a specific assumption about the mean of the population from which the sample is taken. Assume that this mean is one standard deviation above the Null mean.
+
+* Calculate type-II errors both theoretical and by simulation as in step 3. Then increase the sample size and redo this.
+What happens to statistical power when you increase sample size?
+
+
+```{r}
+summary(cars)
+```
