@@ -1,0 +1,103 @@
+---
+title: "Lab2"
+author: "Greg Ceccarelli"
+date: "June 30, 2015"
+output: pdf_document
+---
+
+## Part 1. Multiple Choice (5 points each)
+
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10.
+
+## Part 2. Test Selection (10 points)
+
+Every other year, the General Social Survey collects responses to thousands of questions,
+covering a wide variety of topics. You will be using a subset of data from 1993,
+including a small number of variables. 
+
+This may be found in the file, GSS.Rdata.
+
+Like any survey, GSS data creates additional concerns that would normally go into a
+statistical analysis. Surveys are usually weighted in order to compensate for over- or
+under-representation of subgroups. For this lab, however, you will be using unweighted
+data, which limits how well your findings generalize to the U.S. population.
+For the following problems, select the most appropriate statistical test to answer the
+question from the given choices. 
+
+
+11.
+
+12. 
+
+# Part 3: Data Analysis and Short Answer (50 points )
+
+13. Data Import and Error Checking
+a. Examine the “agewed” variable (age when married). What are the value(s)
+of agewed, if any, that do not meaningfully correspond to ages?
+**RESPONSE:** There are 286 instances where agewed = 0 and 12 instances where agewed = 99. Both of these values seem highly unlikely and do not meaninfully correspond to ages (although it is technically feasible to wed at age 99)
+
+b. Recode any value(s) that do not correspond to age as NA. What is the
+mean of the agewed variable?
+
+```{r}
+#set up working envrionment
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 2')
+rm( list = ls() )
+
+#load supplied R data file
+load("GSS.Rdata")
+
+#view tabulated counts by value
+data.frame(table(GSS$agewed))
+
+#replace outlier values
+GSS$agewed[GSS$agewed == 0 | GSS$agewed == 99] <- NA 
+
+vars<-c("agewed","age")
+
+data.frame(table(GSS[vars]))
+
+
+```
+
+
+14. Checking assumptions
+a. Produce a QQ plot for the agewed variable. Using this plot information, is
+agewed normal and how do you know?
+
+b. Perform a Shapiro-Wilk test on the agewed variable.
+i. What is the null and alternative hypothesis for your test?
+ii. What is your p-value, and what is your specific conclusion?
+
+c. What is the variance of agewed for men? What is the variance of agewed
+for women?
+
+d. Perform a Levene’s test for the agewed variable grouped by men and
+women.
+i. What is the null and alternative hypothesis for this test?
+ii. What is your p-value, and what is your specific conclusion?
+
+```{r}
+
+
+```
+
+15.More hypothesis testing
+
+a. Suppose we have a hypothesis that the age of marriage (agewed) in the
+population has a mean of exactly 23, with a standard deviation of 5 years
+
+(you should assume this value is correct rather than estimating the standard
+deviation from the data). Perform a z-test to analyze this hypothesis.
+
+i. What is the null and alternative hypothesis for this test?
+ii. What is your p-value, and what is your specific conclusion?
