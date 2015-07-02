@@ -43,10 +43,19 @@ question from the given choices.
 13. Data Import and Error Checking
 a. Examine the “agewed” variable (age when married). What are the value(s)
 of agewed, if any, that do not meaningfully correspond to ages?
-**RESPONSE:** There are 286 instances where agewed = 0 and 12 instances where agewed = 99. Both of these values seem highly unlikely and do not meaninfully correspond to ages (although it is technically feasible to wed at age 99)
+
+**RESPONSE:** 
+There are 
+- 286 instances where agewed = 0
+- 11 instances where agewed = 99 and age < 99
+- 2  instances where agewed = 26 and age = 26.
+All of these instances do not meaninfully correspond to ages (although it is technically feasible to wed at age 99 and I left that outlier in the dataset)
 
 b. Recode any value(s) that do not correspond to age as NA. What is the
 mean of the agewed variable?
+
+**RESPONSE:** 
+With NA values removed, the mean of agewed is 22.85012
 
 ```{r}
 #set up working envrionment
@@ -56,38 +65,120 @@ rm( list = ls() )
 #load supplied R data file
 load("GSS.Rdata")
 
+#make copy of DF
+GSS_copy <- GSS[,]
+
+#check for when agewed might exceed age
+GSS$agewed.spurious <- GSS$agewed > GSS$age
+
 #view tabulated counts by value
-data.frame(table(GSS$agewed))
+View(data.frame(table(GSS$agewed)))
 
-#replace outlier values
-GSS$agewed[GSS$agewed == 0 | GSS$agewed == 99] <- NA 
+#review counts of spurious agewed data
+summary(GSS$agewed.spurious)
 
-vars<-c("agewed","age")
+#computer agewed mean prior to transformation
+GSS.agewed.mean.before <-  mean(GSS$agewed)
 
-data.frame(table(GSS[vars]))
+#review the distinct agewed values that don't correspond with age
+View(data.frame(table(GSS$agewed[(GSS$agewed == 0 | (GSS$agewed.spurious == TRUE))])))
 
+#update agewed variable in three instances (separated for clarity)
+#NA when agewed = 0
+GSS$agewed[GSS$agewed == 0] <- NA 
 
+#NA when agewed > wed -- keep one value of 99 (agewed == age)
+GSS$agewed[GSS$agewed.spurious == TRUE] <- NA 
+
+#check to see how many variables were set to NA
+GSS.na.summary <- is.na(GSS$agewed)
+summary(GSS.na.summary)
+
+#define function to omit row values where only certain columns are NA
+data.complete <- function(data, desiredCols) {
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+}
+
+#update dataset to remove NA values only where agedwed is NA, should remove 299 values
+GSS <- data.complete(GSS, c("agewed"))
+
+#double check
+nrow(GSS_copy)-nrow(GSS)
+
+#compute mean
+GSS.agewed.mean.after <- mean(GSS$agewed)
+
+#review hist of updated agewed variable
+hist(GSS$agewed)
 ```
-
 
 14. Checking assumptions
 a. Produce a QQ plot for the agewed variable. Using this plot information, is
 agewed normal and how do you know?
 
+**RESPONSE:** 
+A perfectly normal distribution produces a diagonal line in the qqplot. As we move along the X axis, agewed doesn't move very fast at all (and is not diagonal). Thus, agewed is not normally distributed
+
 b. Perform a Shapiro-Wilk test on the agewed variable.
 i. What is the null and alternative hypothesis for your test?
+
+**RESPONSE:** 
+The null hypothesis is that agewed is drawn from a normal distribution
+The alternative hypothesis is that agewed is drawn from a non-normal distribution
+
 ii. What is your p-value, and what is your specific conclusion?
+
+**RESPONSE:** 
+In this case, the p-value is very small [2.2e-16]. Given it being far less than an alpha value = .05, it is very unlikely that we'd find this distribution of agewed variables under the assumption the population was normal. This is a very non-normal distribution.
 
 c. What is the variance of agewed for men? What is the variance of agewed
 for women?
 
+**RESPONSE:** 
+Variances of agewed by gender
+
+GSS$sex: Male
+[1] 34.99648
+-------------------------------------------------------------------------------------- 
+GSS$sex: Female
+[1] 24.31918
+
+
 d. Perform a Levene’s test for the agewed variable grouped by men and
 women.
 i. What is the null and alternative hypothesis for this test?
+
+**RESPONSE:** 
+The null hypothesis is the assumption that the variances for agewed are equal between men and women
+The alternative hypothesis is how unlikely this difference of variances is to appear
+
 ii. What is your p-value, and what is your specific conclusion?
 
-```{r}
+**RESPONSE:** 
+In this case the p-value is .1418. Given it actually exceeds an alpha value of .05, this is actually not statistically significant - the hypothesis that these variables has the same variance for these two groups is actually statistically plausible.
 
+
+```{r}
+#Load relevant packages
+library(ggplot2)
+library(car)
+library(psych)
+
+#perform a qqplot to visually inspect normality
+qqplot = qplot(sample = GSS$agewed, stat="qq")
+qqplot
+
+#perform a shapiro wilk test shapiro.test(GSS$agewed)
+
+#check gender variable
+summary(GSS$sex) #great no NAs
+
+variances <- list(by(GSS$agewed, GSS$sex, var, na.rm = TRUE))
+variances
+
+#check to see if variances are similar enough
+leveneTest(GSS$agewed, GSS$sex)
 
 ```
 
@@ -100,4 +191,39 @@ population has a mean of exactly 23, with a standard deviation of 5 years
 deviation from the data). Perform a z-test to analyze this hypothesis.
 
 i. What is the null and alternative hypothesis for this test?
+
+**RESPONSE:** 
+The null hypothesis is that the sample mean of agewed = 23
+The alternative hypothesis is that the sample mean of agewed != 23 (conduct a two tailed test)
+
 ii. What is your p-value, and what is your specific conclusion?
+
+**RESPONSE:** 
+In this case the value is .7338565. Given this exceeds an alpha value of .05, there is not enough evidence to reject the null hypothesis - it is not statistically significant. Thus, it is plausible that the mean of the population is 23 assuming a standard deviation of 5 years.
+
+
+```{r}
+#Define function to compute p-vale
+pval= function(data, mu, pop.sd, twotailed=TRUE) {
+  len <- length(data)
+  m <- mean(data)
+  se <- pop.sd / sqrt(len)
+  
+  zscore <- (m-mu) / se 
+  pvalue <- (twotailed + 1 ) * pnorm(abs(zscore),0,1, lower.tail = FALSE)
+  
+  df <- data.frame(pvalue , (pvalue<=0.05))
+  colnames(df) <- c("pvalue","reject")
+  return(df)   
+  
+  }
+
+#sample 100 values from GSS$agewed vector
+GSS.sample <- sample(GSS$agewed,100)
+
+#run test 
+pval(GSS.sample,23,5)
+
+```
+
+
