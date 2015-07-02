@@ -27,7 +27,7 @@ variable?
 
 ```{r}
 #set up working envrionment
-setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 1')
+setwd('/Users/gdc/Documents/MIDS/DATASCI_W203/Assignments/Labs/Lab 1')
 rm( list = ls() )
 
 #load libraries
