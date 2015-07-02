@@ -1,5 +1,5 @@
 ---
-title: "Lab2"
+title: "Lab 2"
 author: "Greg Ceccarelli"
 date: "June 30, 2015"
 output: pdf_document
@@ -7,16 +7,16 @@ output: pdf_document
 
 ## Part 1. Multiple Choice (5 points each)
 
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10.
+1. a
+2. c
+3. f
+4. e
+5. d
+6. b
+7. b
+8. c
+9. d
+10. f
 
 ## Part 2. Test Selection (10 points)
 
@@ -34,9 +34,9 @@ For the following problems, select the most appropriate statistical test to answ
 question from the given choices. 
 
 
-11.
+11. b
 
-12. 
+12. a
 
 # Part 3: Data Analysis and Short Answer (50 points )
 
