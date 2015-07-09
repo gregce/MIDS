@@ -1,12 +1,14 @@
 ### A demonstration of correlation and chi-square in R
 
 ### Preparation
+setwd("/Users/gdc/Documents/MIDS/DATASCI_W203/Async Material and Sample Files /")
 
 # car gives us nice scatterplots
 library(car)
 
 # We'll use our Country-by-Country dataset
 load("Countries2.Rdata")
+
 summary(Countries)
 
 
