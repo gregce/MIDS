@@ -181,7 +181,7 @@ corrupt_odds / trustworthy_odds
 # also, remove countries that are missing corruption data
 Requests2 = merge(Countries[,c("Country", "high_cpi")], Requests, by="Country")
 Requests2 = Requests2[ ! is.na(Requests2$high_cpi),]
-head(Requests2)
+View(head(Requests2))
 
 # We want separate columns for takedown requests from corrupt countries
 # and from trustworthy countries.  Here, we create both columns, and copy
