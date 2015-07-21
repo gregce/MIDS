@@ -1,5 +1,10 @@
 # A demonstration of ANOVA in R
 
+
+rm( list = ls() )
+library(psych)
+setwd("/Users/ceccarelli/MIDS/DATASCI_W203/Async Material and Sample Files /")
+
 # Load Youtube video data
 load("Videos_clean.Rdata")
 summary(Videos)
@@ -19,6 +24,7 @@ mean(Videos$rate, na.rm=T)
 # We can get nicer output with the tapply function
 tapply(Videos$rate, Videos$category, mean, na.rm=T)
 
+table(Videos$category)
 # Perform the analysis of variance and check the significance
 aovm = aov(rate ~ category, Videos)
 summary(aovm)
