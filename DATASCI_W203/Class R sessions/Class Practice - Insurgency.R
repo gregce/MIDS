@@ -43,4 +43,7 @@ summary(insurgency.stata.limited)
 scatterplot(insurgency.stata.limited$occ,insurgency.stata.limited$wdl)
 scatterplot(insurgency.stata.limited$dur,insurgency.stata.limited$pol2)
 
-chisq.test(insurgency.stata.limited$dur,insurgency.stata.limited$pol2)
+
+cor.test(insurgency.stata.limited$occ,insurgency.stata.limited$wdl)
+
+cor.test(insurgency.stata.limited$dur,insurgency.stata.limited$pol2)
