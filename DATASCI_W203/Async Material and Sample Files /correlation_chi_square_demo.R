@@ -1,14 +1,12 @@
 ### A demonstration of correlation and chi-square in R
 
 ### Preparation
-setwd("/Users/gdc/Documents/MIDS/DATASCI_W203/Async Material and Sample Files /")
 
 # car gives us nice scatterplots
 library(car)
 
 # We'll use our Country-by-Country dataset
 load("Countries2.Rdata")
-
 summary(Countries)
 
 
@@ -181,7 +179,7 @@ corrupt_odds / trustworthy_odds
 # also, remove countries that are missing corruption data
 Requests2 = merge(Countries[,c("Country", "high_cpi")], Requests, by="Country")
 Requests2 = Requests2[ ! is.na(Requests2$high_cpi),]
-View(head(Requests2))
+head(Requests2)
 
 # We want separate columns for takedown requests from corrupt countries
 # and from trustworthy countries.  Here, we create both columns, and copy
