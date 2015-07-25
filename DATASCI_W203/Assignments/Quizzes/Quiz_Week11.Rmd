@@ -1,0 +1,58 @@
+---
+title: "R Exercise 3"
+author: "Greg Ceccarelli"
+date: "July 22, 2015"
+output: pdf_document
+---
+
+*Bootstrapping*
+
+```{r}
+
+rm( list = ls())
+NBS<-2000
+#manual bootstrapping function
+fun.boot <- function(data,NBS) {
+      bssamp <- numeric(NBS)
+      #collecting iterations
+      for (i in 1:NBS) {
+        bssamp[i] <- median(sample(data, replace = T))
+      }
+      conf = quantile(bssamp,c(.025,.5,.975)) 
+      return(list(bssamp,conf))   
+}
+
+l <- fun.boot(rnorm(100),NBS)
+#inspecting distribution
+hist(as.numeric(unlist(l[1])),breaks=100,xlab="Bootstrapped Medians of rnorm dist")
+```
+
+*Numerical Optimization*
+
+```{r}
+
+### Didn't get through this... will continue later
+
+objf = function(r, number , k) 
+  {
+  # how good a candidate is r for root k of number
+  measure =   
+  return (measure)
+  
+  }
+
+rootk = function(number, k, start = NULL)
+  {
+  ...
+  
+  if (is.null(start)) # assign a starting point if it is not given
+        start = # starting point
+  # call optim
+    
+  # check if it is working
+    
+  return(r)
+  }
+
+```
+
