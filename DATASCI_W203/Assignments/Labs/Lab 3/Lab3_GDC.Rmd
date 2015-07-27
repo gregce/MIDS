@@ -1,0 +1,113 @@
+---
+title: "Lab 3"
+author: "Greg Ceccarelli"
+date: "July 29, 2015"
+output: pdf_document
+---
+
+## Part 1. Multiple Choice (4 points each)
+
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+
+
+
+## Part 2. Test Selection (20 points)
+
+9. 
+
+10.
+
+11.
+
+12.
+
+13.
+
+
+## Part 3: Data Analysis and Short Answer (48 points )
+
+Write a well-commented R script to perform each of the following tasks, following the best practices described in class. 
+For each new variable, look for obvious errors and make sure that appropriate values are coded as NA. 
+Include all important output, variable recoding, and discussion in your main report. 
+I should be able to understand what you did and what your answer is for each item without opening your R script.
+
+14. Task 1: Conduct a chi-square test to determine if there is an association between marital status (marital) and political
+orientation (politics).
+
+**RESPONSE:** 
+A. What are the null and alternative hypothesis for your test?
+
+B. What test statistic and p-value do you get?
+
+C. Conduct an effect size calculation for your relationship.
+
+D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
+from your results?
+
+
+15. Task 2: Conduct a Pearson correlation analysis to examine the association between age when married (agewed) and hours of tv
+watched (tvhours).
+
+**RESPONSE:** 
+A. What are the null and alternative hypotheses for your test?
+
+B. What test statistic and p-value do you get?
+
+C. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
+from your results?
+
+
+
+16. Task 3: Create a new binary/dummy variable, “married”, that denotes whether an individual is currently married or not 
+currently married. Next, we want to consider just the subpopulation of 23-year olds in this sample. 
+Conduct a Wilcox rank-sum test to determine whether your new “married” variable is associated with the number of children (childs)
+for respondents who are 23 years old.
+
+**RESPONSE:** 
+A. What is the mean of your new “married” variable among 23-year-olds (e.g., the proportion of cases in the category coded “1”)?
+
+B. What is the null and alternative hypotheses for your test?
+
+C. What test statistic and p-value do you get?
+
+D. Conduct an effect size calculation for your relationship.
+
+E. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
+from your results?
+
+
+
+17. Task 4: Conduct an analysis of variance to determine if there is an association between religious affiliation (relig) and age
+when married (agewed).
+
+**RESPONSE:** 
+
+A. What is the null and alternative hypotheses for your test?
+
+B. What test statistic and p-value do you get?
+
+C. Are there statistically significant differences between individual pairs of groups, and if so, how do you know?
+
+D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
+from your results?
+
+```{r}
+#set up working envrionment
+setwd('/Users/gdc/Documents/MIDS/DATASCI_W203/Assignments/Labs/Lab 2')
+rm( list = ls() )
+
+#load supplied R data file
+load("GSS.Rdata")
+
+```
+
+
+
+
