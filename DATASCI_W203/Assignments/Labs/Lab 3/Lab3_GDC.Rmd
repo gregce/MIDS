@@ -272,34 +272,112 @@ W = 19 and p = .0002656
 D. Conduct an effect size calculation for your relationship.
 Using cohens d, the effect size is extraordinarily big! 1.976885
 
-E. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
-from your results?
-In light of evaluating the extremely significant p value and the large effect size, we can safely conclude that the means between these two groups are different.
+E. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you
+conclude from your results?
+In light of evaluating the extremely significant p value and the large effect size, we can safely conclude that the means
+between these two groups are different.
+
+
+
+
+17. Task 4: Conduct an analysis of variance to determine if there is an association between religious affiliation (relig) and
+age when married (agewed).
 
 
 
 ```{r}
 
 #question 17
-#create dummy variable for married using if else
+
+library(ggplot2)
+##inspect religion variable
+summary(GSS$relig)
+
+#check out levels
+levels(GSS$relig)
+
+#wrapper function to easily recode factors
+changelevels <- function(f, ...) {
+    f <- as.factor(f)
+    levels(f) <- list(...)
+    f
+}
+
+GSS$relig_clean <- changelevels(GSS$relig, Protestant=c("Protestant"), Catholi=c("Catholic"), Jewish=c("None"),None=c("Non"),Other=c("Other","DK"))
+
+#recheck out levels
+levels(GSS$relig_clean)
+
+#remove spurious agewed variables
+GSS.age_relig <- subset(GSS, agewed > 0 & agewed<=90)
+
+#remove NA's
+GSS.age_relig <- data.complete(GSS.age_relig ,c("agewed","relig_clean"))
+
+# check the agewed variable for normality
+hist(GSS.age_relig$agewed)
+
+qqplot = qplot(sample = GSS.age_relig$agewed, stat="qq")
+qqplot
+
+# Normality is not great but ANOVA is a robust-test
+# also data is interval
+
+# Let's look at the means, by each category and overall
+by(GSS.age_relig$agewed, GSS.age_relig$relig_clean, mean, na.rm=T)
+mean(GSS.age_relig$agewed, na.rm=T)
+
+# Perform the analysis of variance and check the significance
+aovm = aov(agewed ~ relig_clean, GSS.age_relig)
+summary(aovm)
+
+# perform a post hoc test to check for pairwise differences in means... use
+bonferroni correction
+pw = pairwise.t.test(GSS.age_relig$agewed, GSS.age_relig$relig_clean, p.adjus
+                     .method = "bonferroni")
+
+pw
+#make output clearer using a function
+sig_stars = function(p)
+{
+  stars = symnum(p, na = F, cutpoints = c(0, .001, .01, .05, .1, 1), symbols=c(
+    ***","**", "*", ".", " "))
+	return( paste(round(p, 3), stars) )
+}
+
+# apply our new function to every element in our matrix
+t_table = noquote( apply(pw$p.value, c(1,2), sig_stars) ) 
+t_table
+
 
 ```
 
 
-
-17. Task 4: Conduct an analysis of variance to determine if there is an association between religious affiliation (relig) and age
-when married (agewed).
-
 **RESPONSE:** 
 
 A. What is the null and alternative hypotheses for your test?
+The null hypothesis is that there are no differences in the mean wed age 
+between religious groups
+The alternative hypothesis is that there are differences in the mean wed 
+age between the religious groups
 
 B. What test statistic and p-value do you get?
+F=8.199 and p value 1.6e-06. The overall (omnibus) model is very significant.
 
-C. Are there statistically significant differences between individual pairs of groups, and if so, how do you know?
+C. Are there statistically significant differences between individual pairs of
+groups, and if so, how do you know?
+Yes, using a post hoc test (pairwise ttest with the bonferroni correction),
+shows that there are statistically significant differences in wed age between
+Protestant and Catholics (largest significant difference),  Protestant and
+Jewish and Protestant and Other groups.
 
-D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
-from your results?
+
+D. Evaluate your hypothesis in light of your tests of statistical and practical
+significance. What, if anything, can you conclude from your results?
+
+While there is an overall difference in mean age when wed, the most interesting
+statistically significant differences occur between Protestants and all groups
+except (None)
 
 
 
