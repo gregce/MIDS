@@ -31,32 +31,10 @@ output: pdf_document
 13.
 
 
-```{r}
-#set up working envrionment
-##running on macbook air, set relevant directory
-setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 3/')
-rm( list = ls() )
-
-#load supplied R data file
-load("GSS.Rdata")
-
-#question 9
-graph1 = ggplot(Countries, aes(gdp))
-graph1 + geom_histogram()
-
-
-```
-
-
 ## Part 3: Data Analysis and Short Answer (48 points )
 
-Write a well-commented R script to perform each of the following tasks, following the best practices described in class. 
-For each new variable, look for obvious errors and make sure that appropriate values are coded as NA. 
-Include all important output, variable recoding, and discussion in your main report. 
-I should be able to understand what you did and what your answer is for each item without opening your R script.
-
-14. Task 1: Conduct a chi-square test to determine if there is an association between marital status (marital) and political
-orientation (politics).
+14. Task 1: Conduct a chi-square test to determine if there is an association
+between marital status (marital) and political orientation (politics).
 
 ```{r}
 #set up working envrionment
@@ -126,32 +104,38 @@ cramers_v(cs)
 **RESPONSE:** 
 A. What are the null and alternative hypothesis for your test?
 We use the chi-sq test to test the relationship between marital status 
-The null hypothesis is that marital status and political orientation are indepedent
-The alternative hypothesis is that marital status and political orientation are not indepedent (they are associated)
+The null hypothesis is that marital status and political orientation are
+indepedent the alternative hypothesis is that marital status and political
+orientation are not indepedent (they are associated)
 
 B. What test statistic and p-value do you get?
-The value of the chi-square statistic is 44.2255. This value is highly significant (p < .0001), indicating that marital status has a significant effect on political orientation. 
+The value of the chi-square statistic is 44.2255. 
+This value is highly significant (p < .0001), indicating that marital status has
+a significant effect on political orientation. 
 
 C. Conduct an effect size calculation for your relationship.
 Using cramer's v returns an effect size of 0.08756363.
 
-D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results?
-While the results from the chi-square test are statistically significant, it is hard to make a good conclusion given the lack of practical significance (anything under .2 is considered weak). Thus while the variable's are associated, their association is not very strong.
+D. Evaluate your hypothesis in light of your tests of statistical and 
+practical significance. What, if anything, can you conclude from your results?
+While the results from the chi-square test are statistically significant, 
+it is hard to make a good conclusion given the lack of practical significance
+(anything under .2 is considered weak). 
+Thus while the variable's are associated, their association is not very strong.
 
 
 
-
-15. Task 2: Conduct a Pearson correlation analysis to examine the association between age when married (agewed) and hours of tv
+15. Task 2: Conduct a Pearson correlation analysis to examine the association
+between age when married (agewed) and hours of tv
 watched (tvhours).
 
 ```{r}
-
 #question 15
 #check how linear the variables are
 #inspect variable 
 describe(GSS$agewed)
 
-#agewed is is not normally distributed but rather exhibits leptokurtic positive skew given the right tail is longer and the mass of the distribution is concentrated on the left of the figure.
+#agewed is is not normally distributed and exhibits leptokurtic positive skew
 hist(GSS$agewed)
 
 #inspect tvhours
@@ -168,49 +152,138 @@ GSS.age_tv <- subset(GSS.age_tv, agewed > 0 & agewed<=90)
 
 #review histogram again
 hist(GSS.age_tv$tvhours)
-hist(GSS$tvhours)
+hist(GSS.age_tv$agewed)
 
-# Use a scatterplot to see how linear the relationship looks
-scatterplot(GSS.age_tv$agewed, GSS$tvhours)
+# Use a scatterplot to see how linear the relationship looks on the new
+# variables
+scatterplot(GSS.age_tv$agewed, GSS.age_tv$tvhours)
 
 #check the correlation
-cor.results <- cor.test(GSS$agewed, GSS$tvhours, use = "complete.obs", method = "pearson")
+cor.results <- cor.test(GSS.age_tv$agewed, GSS.age_tv$tvhours, 
+                        use = "complete.obs", method = "pearson")
+
+cor.results
 
 # compute r^2
 cor.results$estimate**2
 
 ## compute r^2 another way with a correlation matrix
-cor(GSS[,c("agewed", "tvhours")], use = "complete.obs")**2
+cor(GSS.age_tv[,c("agewed", "tvhours")], use = "complete.obs")**2
 
 ```
 
 
 **RESPONSE:** 
 A. What are the null and alternative hypotheses for your test?
-The null hypothesis is that the linear relationship between agewed and 
+The null hypothesis is that the linear relationship between agewed and tvhours
+is 0
+The alternative hypothesis is that the linear relationship is not 0
 
 B. What test statistic and p-value do you get?
+Test statistic of -1.0349 and a p-value of .3009. 
 
-C. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results?
+Also, an R value of -.0299. 95 percent confidence interval -0.08654554 and 
+0.02681630. R^2 value of 0.0008976593. 
+
+C. Evaluate your hypothesis in light of your tests of statistical and practical
+significance. What, if anything, can you conclude from your results?
+Given the very high pvalue, there is not enough evidence to reject the null
+hypothesis that the linear relationship is 0 (aka there is not one). This is
+confirmed via practical signifance and the confidence interval that spans 0.
+
+
+16. Task 3: Create a new binary/dummy variable, “married”, that denotes whether
+an individual is currently married or not currently married. Next, we want to
+consider just the subpopulation of 23-year olds in this sample. 
+Conduct a Wilcox rank-sum test to determine whether your new “married” variable 
+is associated with the number of children (childs) for respondents who are 23
+years old.
 
 
 
-16. Task 3: Create a new binary/dummy variable, “married”, that denotes whether an individual is currently married or not 
-currently married. Next, we want to consider just the subpopulation of 23-year olds in this sample. 
-Conduct a Wilcox rank-sum test to determine whether your new “married” variable is associated with the number of children (childs)
-for respondents who are 23 years old.
+```{r}
+
+#question 16
+#create dummy variable for married using if else
+GSS$marital_dummy <- ifelse(GSS$marital == "married",1,0)
+
+#check summary stats for this variable
+summary(GSS$marital_dummy)
+
+#create subset for variable
+GSS.marital_dummy <- subset(GSS, age == 23, select = c(age,marital_dummy,childs
+                                                       ))
+#View(GSS.marital_dummy)
+
+##look at mean/proportion of married in new subset
+mean(GSS.marital_dummy$marital_dummy)
+summary(GSS.marital_dummy)
+
+# We may ask whether the married 23 years olds have more or less children
+by(GSS.marital_dummy$childs,GSS.marital_dummy$marital_dummy, mean, na.rm = TRUE)
+
+# Notice that number of children is not at all normal.
+qqnorm(GSS.marital_dummy$childs)
+
+# Use the Wilcoxon rank-sum test to compare means
+wilcox.test(GSS.marital_dummy$childs ~ GSS.marital_dummy$marital_dummy)
+
+# leverage cohensd function from previous work to compute effect size
+cohens_d <- function(x, y) {
+  # this function takes two vectors as inputs, and compares
+	# their means
+	
+	# first, compute the pooled standard error
+  lx = length(subset(x,!is.na(x)))
+  ly = length(subset(y,!is.na(y)))
+	# numerator of the pooled variance:
+	num = (lx-1)*var(x, na.rm=T) + (ly-1)*var(y, na.rm=T)
+	pooled_var = num / (lx + ly - 2) # variance
+	pooled_sd = sqrt(pooled_var)
+	
+	# finally, compute cohen's d
+	cd = abs(mean(x, na.rm=T) - mean(y, na.rm=T)) / pooled_sd
+	return(cd)
+}
+
+
+#need vectors to plug into cohens d
+children_m = GSS.marital_dummy$childs[GSS.marital_dummy$marital_dummy==1]
+children_nm = GSS.marital_dummy$childs[GSS.marital_dummy$marital_dummy==0]
+
+# plug them into our cohen's d function
+cohens_d(children_m, children_nm)
+
+```
+
+
 
 **RESPONSE:** 
 A. What is the mean of your new “married” variable among 23-year-olds (e.g., the proportion of cases in the category coded “1”)?
+.2857 or 28%
 
 B. What is the null and alternative hypotheses for your test?
+The null hypothesis is the mean number of children had by individuals (married or not) is identical
+The alternative hypothesis is that the mean number of children had by individuals (married or not) is not identical
 
 C. What test statistic and p-value do you get?
+W = 19 and p = .0002656
 
 D. Conduct an effect size calculation for your relationship.
+Using cohens d, the effect size is extraordinarily big! 1.976885
 
 E. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
 from your results?
+In light of evaluating the extremely significant p value and the large effect size, we can safely conclude that the means between these two groups are different.
+
+
+
+```{r}
+
+#question 17
+#create dummy variable for married using if else
+
+```
 
 
 
@@ -220,7 +293,6 @@ when married (agewed).
 **RESPONSE:** 
 
 A. What is the null and alternative hypotheses for your test?
-
 
 B. What test statistic and p-value do you get?
 
