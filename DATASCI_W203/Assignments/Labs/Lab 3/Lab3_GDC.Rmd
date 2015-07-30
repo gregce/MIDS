@@ -7,27 +7,22 @@ output: pdf_document
 
 ## Part 1. Multiple Choice (4 points each)
 
-1. 
-2. 
-3. 
+1. b
+2. a
+3. b
 4. c
 5. d
-6. 
+6. a
 7. b
-8. 
-
+8. a
 
 
 ## Part 2. Test Selection (20 points)
 
 9. d
-
 10. d
-
 11. c
-
 12. b
-
 13. d
 
 ## Part 3: Data Analysis and Short Answer (48 points )
