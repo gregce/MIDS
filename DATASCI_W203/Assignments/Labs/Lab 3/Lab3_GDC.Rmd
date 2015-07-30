@@ -31,6 +31,23 @@ output: pdf_document
 13.
 
 
+```{r}
+#set up working envrionment
+##running on macbook air, set relevant directory
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 3/')
+rm( list = ls() )
+
+#load supplied R data file
+load("GSS.Rdata")
+
+#question 9
+graph1 = ggplot(Countries, aes(gdp))
+graph1 + geom_histogram()
+
+
+```
+
+
 ## Part 3: Data Analysis and Short Answer (48 points )
 
 Write a well-commented R script to perform each of the following tasks, following the best practices described in class. 
@@ -41,27 +58,140 @@ I should be able to understand what you did and what your answer is for each ite
 14. Task 1: Conduct a chi-square test to determine if there is an association between marital status (marital) and political
 orientation (politics).
 
+```{r}
+#set up working envrionment
+##running on macbook air, set relevant directory
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 3/')
+rm( list = ls() )
+
+#Load relevant packages
+library(ggplot2)
+library(car)
+library(psych)
+library(gmodels)
+library(MASS)
+
+#load supplied R data file
+load("GSS.Rdata")
+
+#define function to omit row values where only certain columns are NA
+data.complete <- function(data, desiredCols) {
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+}
+
+#question 14
+#inspect variable to check on categories
+summary(GSS$marital)
+
+##appears NA is a string in Marital, recode to true NA
+is.na(GSS) <- GSS=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+GSS$marital <- factor(GSS$marital)
+
+# true NA's now
+summary(GSS$marital)
+
+# check politics as well
+summary(GSS$politics)
+
+#created NA subsetted dataset to run chi square test on
+GSS.mar_pol <- data.complete(GSS[,c("marital","politics")], c("marital","politics")) 
+
+
+#review tabulated results after removing null
+table(GSS.mar_pol)
+
+##leverage CrossTable function to compute Pearson's chisq test 
+CrossTable(GSS.mar_pol$marital, GSS.mar_pol$politics, fisher = TRUE, 
+           prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,
+           chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+
+# also leverage a different function to compare results
+cs <- chisq.test(GSS$marital, GSS$politics)
+
+#since this is a test of indepedence, leverage cramer's v for effect size
+cramers_v = function(cs)
+{
+  cv = sqrt(cs$statistic / (sum(cs$observed) * (min(dim(cs$observed))-1)))
+  print.noquote("Cramer's V:")
+	return(as.numeric(cv))
+}
+
+cramers_v(cs)
+```
+
+
 **RESPONSE:** 
 A. What are the null and alternative hypothesis for your test?
+We use the chi-sq test to test the relationship between marital status 
+The null hypothesis is that marital status and political orientation are indepedent
+The alternative hypothesis is that marital status and political orientation are not indepedent (they are associated)
 
 B. What test statistic and p-value do you get?
+The value of the chi-square statistic is 44.2255. This value is highly significant (p < .0001), indicating that marital status has a significant effect on political orientation. 
 
 C. Conduct an effect size calculation for your relationship.
+Using cramer's v returns an effect size of 0.08756363.
 
-D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
-from your results?
+D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results?
+While the results from the chi-square test are statistically significant, it is hard to make a good conclusion given the lack of practical significance (anything under .2 is considered weak). Thus while the variable's are associated, their association is not very strong.
+
+
 
 
 15. Task 2: Conduct a Pearson correlation analysis to examine the association between age when married (agewed) and hours of tv
 watched (tvhours).
 
+```{r}
+
+#question 15
+#check how linear the variables are
+#inspect variable 
+describe(GSS$agewed)
+
+#agewed is is not normally distributed but rather exhibits leptokurtic positive skew given the right tail is longer and the mass of the distribution is concentrated on the left of the figure.
+hist(GSS$agewed)
+
+#inspect tvhours
+describe(GSS$tvhours)
+
+#tvhours are even more non-normally distributed and have some outliers
+hist(GSS$tvhours)
+
+#subset dataset because tvhours variable  cannot exceed 24
+GSS.age_tv <- subset(GSS, tvhours <= 24, select = c(agewed,tvhours))
+
+#subset again because 0, 98 and 99 are invalid for agewed
+GSS.age_tv <- subset(GSS.age_tv, agewed > 0 & agewed<=90)
+
+#review histogram again
+hist(GSS.age_tv$tvhours)
+hist(GSS$tvhours)
+
+# Use a scatterplot to see how linear the relationship looks
+scatterplot(GSS.age_tv$agewed, GSS$tvhours)
+
+#check the correlation
+cor.results <- cor.test(GSS$agewed, GSS$tvhours, use = "complete.obs", method = "pearson")
+
+# compute r^2
+cor.results$estimate**2
+
+## compute r^2 another way with a correlation matrix
+cor(GSS[,c("agewed", "tvhours")], use = "complete.obs")**2
+
+```
+
+
 **RESPONSE:** 
 A. What are the null and alternative hypotheses for your test?
+The null hypothesis is that the linear relationship between agewed and 
 
 B. What test statistic and p-value do you get?
 
-C. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
-from your results?
+C. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results?
 
 
 
@@ -91,6 +221,7 @@ when married (agewed).
 
 A. What is the null and alternative hypotheses for your test?
 
+
 B. What test statistic and p-value do you get?
 
 C. Are there statistically significant differences between individual pairs of groups, and if so, how do you know?
@@ -98,15 +229,6 @@ C. Are there statistically significant differences between individual pairs of g
 D. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude
 from your results?
 
-```{r}
-#set up working envrionment
-setwd('/Users/gdc/Documents/MIDS/DATASCI_W203/Assignments/Labs/Lab 2')
-rm( list = ls() )
-
-#load supplied R data file
-load("GSS.Rdata")
-
-```
 
 
 
