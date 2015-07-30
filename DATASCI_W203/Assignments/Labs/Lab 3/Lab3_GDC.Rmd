@@ -10,26 +10,25 @@ output: pdf_document
 1. 
 2. 
 3. 
-4. 
-5. 
+4. c
+5. d
 6. 
-7. 
+7. b
 8. 
 
 
 
 ## Part 2. Test Selection (20 points)
 
-9. 
+9. d
 
-10.
+10. d
 
-11.
+11. c
 
-12.
+12. b
 
-13.
-
+13. d
 
 ## Part 3: Data Analysis and Short Answer (48 points )
 
@@ -82,7 +81,7 @@ GSS.mar_pol <- data.complete(GSS[,c("marital","politics")], c("marital","politic
 table(GSS.mar_pol)
 
 ##leverage CrossTable function to compute Pearson's chisq test 
-CrossTable(GSS.mar_pol$marital, GSS.mar_pol$politics, fisher = TRUE, 
+CrossTable(GSS.mar_pol$marital, GSS.mar_pol$politics, 
            prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,
            chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
 
@@ -103,21 +102,26 @@ cramers_v(cs)
 
 **RESPONSE:** 
 A. What are the null and alternative hypothesis for your test?
+
 We use the chi-sq test to test the relationship between marital status 
 The null hypothesis is that marital status and political orientation are
-indepedent the alternative hypothesis is that marital status and political
+indepedent
+The alternative hypothesis is that marital status and political
 orientation are not indepedent (they are associated)
 
 B. What test statistic and p-value do you get?
+
 The value of the chi-square statistic is 44.2255. 
 This value is highly significant (p < .0001), indicating that marital status has
 a significant effect on political orientation. 
 
 C. Conduct an effect size calculation for your relationship.
+
 Using cramer's v returns an effect size of 0.08756363.
 
 D. Evaluate your hypothesis in light of your tests of statistical and 
 practical significance. What, if anything, can you conclude from your results?
+
 While the results from the chi-square test are statistically significant, 
 it is hard to make a good conclusion given the lack of practical significance
 (anything under .2 is considered weak). 
@@ -175,11 +179,13 @@ cor(GSS.age_tv[,c("agewed", "tvhours")], use = "complete.obs")**2
 
 **RESPONSE:** 
 A. What are the null and alternative hypotheses for your test?
+
 The null hypothesis is that the linear relationship between agewed and tvhours
 is 0
 The alternative hypothesis is that the linear relationship is not 0
 
 B. What test statistic and p-value do you get?
+
 Test statistic of -1.0349 and a p-value of .3009. 
 
 Also, an R value of -.0299. 95 percent confidence interval -0.08654554 and 
@@ -187,6 +193,7 @@ Also, an R value of -.0299. 95 percent confidence interval -0.08654554 and
 
 C. Evaluate your hypothesis in light of your tests of statistical and practical
 significance. What, if anything, can you conclude from your results?
+
 Given the very high pvalue, there is not enough evidence to reject the null
 hypothesis that the linear relationship is 0 (aka there is not one). This is
 confirmed via practical signifance and the confidence interval that spans 0.
@@ -260,20 +267,25 @@ cohens_d(children_m, children_nm)
 
 **RESPONSE:** 
 A. What is the mean of your new “married” variable among 23-year-olds (e.g., the proportion of cases in the category coded “1”)?
+
 .2857 or 28%
 
 B. What is the null and alternative hypotheses for your test?
+
 The null hypothesis is the mean number of children had by individuals (married or not) is identical
 The alternative hypothesis is that the mean number of children had by individuals (married or not) is not identical
 
 C. What test statistic and p-value do you get?
+
 W = 19 and p = .0002656
 
 D. Conduct an effect size calculation for your relationship.
+
 Using cohens d, the effect size is extraordinarily big! 1.976885
 
 E. Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you
 conclude from your results?
+
 In light of evaluating the extremely significant p value and the large effect size, we can safely conclude that the means
 between these two groups are different.
 
@@ -332,16 +344,15 @@ aovm = aov(agewed ~ relig_clean, GSS.age_relig)
 summary(aovm)
 
 # perform a post hoc test to check for pairwise differences in means... use
-bonferroni correction
-pw = pairwise.t.test(GSS.age_relig$agewed, GSS.age_relig$relig_clean, p.adjus
-                     .method = "bonferroni")
+# bonferroni correction
+pw = pairwise.t.test(GSS.age_relig$agewed, GSS.age_relig$relig_clean, p.adjust.method = "bonferroni")
 
 pw
+
 #make output clearer using a function
 sig_stars = function(p)
 {
-  stars = symnum(p, na = F, cutpoints = c(0, .001, .01, .05, .1, 1), symbols=c(
-    ***","**", "*", ".", " "))
+  stars = symnum(p, na = F, cutpoints = c(0, .001, .01, .05, .1, 1), symbols=c("***","**", "*", ".", " "))
 	return( paste(round(p, 3), stars) )
 }
 
@@ -356,16 +367,19 @@ t_table
 **RESPONSE:** 
 
 A. What is the null and alternative hypotheses for your test?
+
 The null hypothesis is that there are no differences in the mean wed age 
 between religious groups
 The alternative hypothesis is that there are differences in the mean wed 
 age between the religious groups
 
 B. What test statistic and p-value do you get?
+
 F=8.199 and p value 1.6e-06. The overall (omnibus) model is very significant.
 
 C. Are there statistically significant differences between individual pairs of
 groups, and if so, how do you know?
+
 Yes, using a post hoc test (pairwise ttest with the bonferroni correction),
 shows that there are statistically significant differences in wed age between
 Protestant and Catholics (largest significant difference),  Protestant and
