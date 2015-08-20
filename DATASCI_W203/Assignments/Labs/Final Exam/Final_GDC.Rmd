@@ -1,0 +1,292 @@
+---
+title: "Final"
+author: "Greg Ceccarelli"
+date: "August 16, 2015"
+output: pdf_document
+---
+
+## Part 1. Multiple Choice (32 points)
+
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+
+
+## Part 2. Test Selection (24 points)
+
+9. a
+10. d
+11. b could be c
+12. 
+13. 
+14.
+
+```{r}
+
+summary(dating$lgbt)
+summary(dating$adults_in_household)
+
+anova(dating$lgbt,dating$adults_in_household)
+
+
+```
+
+## Part 3: Data Analysis  (44 points )
+
+15. OLS Regression
+
+```{r}
+#set up working envrionment
+##running on macbook air, set relevant directory
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Final Exam/')
+rm( list = ls() )
+
+#Load relevant packages
+library(ggplot2)
+library(car)
+library(psych)
+library(gmodels)
+library(MASS)
+library(plyr)
+
+#load supplied R data file
+dating <- read.csv("Dating.csv",header = TRUE)
+
+#inspect life_quality variable
+summary(dating$life_quality)
+levels(dating$life_quality)
+
+#wrapper function to easily recode factors
+changelevels <- function(f, ...) {
+    f <- as.factor(f)
+    levels(f) <- list(...)
+    f
+}
+
+dating$life_quality_cleaned <- changelevels(dating$life_quality, "5"=c("1"), "4"=c("2"), "3"=c("3"),"2"=c("4"),"1"=c("5"),"NA"=c("Don't know","Refused"))
+
+levels(dating$life_quality_cleaned)
+
+##appears NA is a string in dating$life_quality_cleaned, recode to true NA
+is.na(dating) <- dating=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+dating$life_quality_cleaned <- factor(dating$life_quality_cleaned)
+
+#check summary output
+summary(dating$life_quality_cleaned)
+
+#convert to numeric to use in regression using ali's method
+dating$life_quality_cleaned <- as.numeric(as.character(dating$life_quality_cleaned))
+
+#compute the mean for life quality to answer 15. a
+mean(dating$life_quality_cleaned, na.rm =TRUE)
+
+summary(dating$life_quality_cleaned)
+
+hist(dating$life_quality_cleaned)
+
+
+##review values for dating$years_in_relationship & age
+counts_yrs = as.data.frame(table(dating$years_in_relationship))
+counts_yrs[with(counts_yrs,order(-Freq)),]
+
+counts_age = as.data.frame(table(dating$age))
+counts_age[with(counts_age,order(-Freq)),]
+
+dating$years_in_relationship_cleaned <- dating$years_in_relationship
+
+
+#in this instance, use plyr instead to mapvalues
+dating$years_in_relationship_cleaned <- mapvalues(dating$years_in_relationship_cleaned, from = c(" ","Refused"), to= c("NA", "NA"))
+
+##appears NA is a string in dating$years_in_relationship_cleaned, recode to true NA
+is.na(dating) <- dating=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+dating$years_in_relationship_cleaned <- factor(dating$years_in_relationship_cleaned)
+
+#recheck counts to make sure nothing amiss
+counts = as.data.frame(table(dating$years_in_relationship_cleaned))
+counts[with(counts,order(-Freq)),]
+
+#check total counts, 59 NA's not included
+sum(as.numeric(counts$Freq))
+hist(as.numeric(dating$years_in_relationship_cleaned))
+
+#update to be numeric following Alis Guidance
+dating$years_in_relationship_cleaned <- as.numeric(as.character(dating$years_in_relationship_cleaned))
+
+##finally, check for spurious values when years_in_relationship exceeds age
+dating$years_in_relationship_cleaned.spurious <- as.numeric(as.character(dating$years_in_relationship_cleaned)) > dating$age
+
+table(dating$years_in_relationship_cleaned.spurious)
+
+##One value where this occurs, recode to NA
+#View(data.frame(dating[dating[,"years_in_relationship_cleaned.spurious"],]))
+
+is.na(dating$years_in_relationship_cleaned) <- dating$years_in_relationship_cleaned.spurious==TRUE
+
+dating$years_in_relationship_cleaned <- factor(dating$years_in_relationship_cleaned)
+
+#compute the mean for life quality to answer 15. b
+mean(dating$years_in_relationship_cleaned, na.rm =TRUE)
+
+##check use_internet 
+summary(dating$use_internet)
+
+#remap values
+dating$use_internet_cleaned <- mapvalues(dating$use_internet, from = c(" ","Don't know","Refused"), to= c("NA","NA","NA"))
+
+## NA is a string in dating$use_internet_cleaned, recode to true NA
+is.na(dating) <- dating=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+dating$use_internet_cleaned<- factor(dating$use_internet_cleaned)
+
+##check use_internet again
+summary(dating$use_internet_cleaned)
+
+#compute lim_rows logical vector for the 3 variables in question
+lim_rows = complete.cases(dating$life_quality_cleaned, dating$use_internet_cleaned, dating$years_in_relationship_cleaned)
+
+## just the complete cases, count the rows with nrow to answer 15. c
+dating_lim = dating[lim_rows,]
+nrow(dating_lim)
+
+
+lmod1 <- lm(life_quality_cleaned ~ years_in_relationship_cleaned, dating_lim)
+summary(lmod1)
+#first models coefficient
+coef(lmod1)
+
+#fit multivariate ols linear model: life_quality outcome, use_internet
+#and years_in relationship as predictors
+lmod2 <- lm(life_quality_cleaned ~ years_in_relationship_cleaned + use_internet_cleaned, dating_lim)
+
+summary(lmod2)
+coef(lmod2)
+
+# compare the model improvement with anova
+anova(lmod1, lmod2)
+
+# also check the AIC
+AIC(lmod1)
+AIC(lmod2)
+
+
+
+```
+
+
+**RESPONSE:** 
+A. What is the mean quality of life in the sample?
+3.392921
+
+B. What is the mean of years_in_relationship in the sample?
+13.43887
+
+c. How many cases does this leave you with?
+1089
+
+D. Fit an OLS Model. What is the slope coefficient you get? Is it
+statistically significant? What about practically significant?
+The slope coefficient is  0.005217756, meaning that every unit increase
+in "years in relationship" increases "life quality" by that amount. It is
+statistically significant but given the extremely small R squared, not
+practically significant given the very low percent of variance explained.
+
+
+E. Fit a second OLS model. What is the slope coefficient for use_interne
+? Is it statistically significant? What about practically significant?
+The slope coefficient for use internet is  0.404609136, meaning that internet users on average had a rating for "life quality" that much higher. In this case it is higher statistically significant with a p value of 5.19e-06. 
+
+
+F. Compute the F-ratio and associated p-value between your two regressio
+models. Assess the improvement from your first model to your second.
+Using ANOVA, The F-ratio is 20.975 and is highly statisitically significant. Reduced AIC between model 1 and 2 indicate that we've improved predictive ability and that we have a higher quality model (with improved R squared)
+
+
+16. Logistic Regression
+
+
+```{r}
+#set up working envrionment
+##running on macbook air, set relevant directory
+setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 3/')
+rm( list = ls() )
+
+#Load relevant packages
+library(ggplot2)
+library(car)
+library(psych)
+library(gmodels)
+library(MASS)
+
+#load supplied R data file
+load("GSS.Rdata")
+
+#define function to omit row values where only certain columns are NA
+data.complete <- function(data, desiredCols) {
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+}
+
+#question 14
+#inspect variable to check on categories
+summary(GSS$marital)
+
+##appears NA is a string in Marital, recode to true NA
+is.na(GSS) <- GSS=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+GSS$marital <- factor(GSS$marital)
+
+# true NA's now
+summary(GSS$marital)
+
+# check politics as well
+summary(GSS$politics)
+
+#created NA subsetted dataset to run chi square test on
+GSS.mar_pol <- data.complete(GSS[,c("marital","politics")], c("marital","politics")) 
+
+
+#review tabulated results after removing null
+table(GSS.mar_pol)
+
+##leverage CrossTable function to compute Pearson's chisq test 
+CrossTable(GSS.mar_pol$marital, GSS.mar_pol$politics, 
+           prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,
+           chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+
+# also leverage a different function to compare results
+cs <- chisq.test(GSS$marital, GSS$politics)
+
+#since this is a test of indepedence, leverage cramer's v for effect size
+cramers_v = function(cs)
+{
+  cv = sqrt(cs$statistic / (sum(cs$observed) * (min(dim(cs$observed))-1)))
+  print.noquote("Cramer's V:")
+  return(as.numeric(cv))
+}
+
+cramers_v(cs)
+```
+
+
+**RESPONSE:** 
+A. What are the odds that a respondent in the sample has flirted online at some point (flirted_online)?
+
+B. Conduct a logistic regression to predict flirted_online as a function
+of where a respondent lives (usr). What Akaike Information Criterion (AI
+) does your modelhave?
+
+C.  how much bigger are the odds that an urban respondent thas flirted
+online than the odds that a rural respondent has flirted online? Is this
+effect practically significant?
