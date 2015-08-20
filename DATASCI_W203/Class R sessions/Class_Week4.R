@@ -18,3 +18,11 @@ pop = c(12,4,8,9,2,5,12,11)
 ### CLt DEMO
 sample.size <- 3
 samp <- sample(pop, sample.size, replace=TRUE)
+mean.samp = mean(samp)
+rep.size <- 1000
+mysamplemean = function(i) {}
+mean.hat <- replicate
+
+
+library(ggplot2)
+qplot(mean.samp)
