@@ -22,16 +22,22 @@ output: pdf_document
 9. a
 10. d
 11. b could be c
-12. 
-13. 
-14.
+12. b
+13. a
+14. b
 
 ```{r}
+
+##TO DELETE THIS SECTION, USED TO EXPLORE VARIABLES TO DECIDE ON TESTS
 
 summary(dating$lgbt)
 summary(dating$adults_in_household)
 
 anova(dating$lgbt,dating$adults_in_household)
+
+summary(dating$children0_5) 
+summary(dating$children6_11)
+summary(dating$children12_17)
 
 
 ```
@@ -161,6 +167,12 @@ nrow(dating_lim)
 
 
 lmod1 <- lm(life_quality_cleaned ~ years_in_relationship_cleaned, dating_lim)
+plot(dating$life_quality_cleaned ~ dating$years_in_relationship_cleaned)
+abline(lmod1)
+
+##plot model to review
+plot(lmod1)
+
 summary(lmod1)
 #first models coefficient
 coef(lmod1)
@@ -188,7 +200,7 @@ AIC(lmod2)
 A. What is the mean quality of life in the sample?
 3.392921
 
-B. What is the mean of years_in_relationship in the sample?
+B. What is the mean of "years in relationship" in the sample?
 13.43887
 
 c. How many cases does this leave you with?
@@ -216,76 +228,97 @@ Using ANOVA, The F-ratio is 20.975 and is highly statisitically significant. Red
 
 
 ```{r}
-#set up working envrionment
-##running on macbook air, set relevant directory
-setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Lab 3/')
-rm( list = ls() )
+summary(dating$flirted_online)
 
-#Load relevant packages
-library(ggplot2)
-library(car)
-library(psych)
-library(gmodels)
-library(MASS)
+#remap values
+dating$flirted_online_cleaned <- mapvalues(dating$flirted_online, from = c(" ","Don't know","Refused"), to= c("NA","NA","NA"))
 
-#load supplied R data file
-load("GSS.Rdata")
-
-#define function to omit row values where only certain columns are NA
-data.complete <- function(data, desiredCols) {
-  completeVec <- complete.cases(data[, desiredCols])
-  return(data[completeVec, ])
-}
-
-#question 14
-#inspect variable to check on categories
-summary(GSS$marital)
-
-##appears NA is a string in Marital, recode to true NA
-is.na(GSS) <- GSS=="NA"
+## NA is a string in dating$flirted_online_cleaned, recode to true NA
+is.na(dating) <- dating=="NA"
 
 # Can fix the remaining "NA" after fix by recreating the factor 
-GSS$marital <- factor(GSS$marital)
+dating$flirted_online_cleaned<- factor(dating$flirted_online_cleaned)
 
-# true NA's now
-summary(GSS$marital)
-
-# check politics as well
-summary(GSS$politics)
-
-#created NA subsetted dataset to run chi square test on
-GSS.mar_pol <- data.complete(GSS[,c("marital","politics")], c("marital","politics")) 
+summary(dating$flirted_online_cleaned)
 
 
-#review tabulated results after removing null
-table(GSS.mar_pol)
+#create dummy variables
+contrasts(dating$flirted_online_cleaned)<-contr.treatment(2,base = 1)
 
-##leverage CrossTable function to compute Pearson's chisq test 
-CrossTable(GSS.mar_pol$marital, GSS.mar_pol$politics, 
-           prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,
-           chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+levels(dating$flirted_online_cleaned)
 
-# also leverage a different function to compare results
-cs <- chisq.test(GSS$marital, GSS$politics)
+summary(dating$flirted_online_cleaned)
 
-#since this is a test of indepedence, leverage cramer's v for effect size
-cramers_v = function(cs)
-{
-  cv = sqrt(cs$statistic / (sum(cs$observed) * (min(dim(cs$observed))-1)))
-  print.noquote("Cramer's V:")
-  return(as.numeric(cv))
-}
+dating$flirted_online_cleaned_recode <- ifelse(dating$flirted_online_cleaned=="Yes", 1, 0)
 
-cramers_v(cs)
+#t=table(dating$flirted_online_cleaned)
+#D = data.frame( matrix(t,ncol=2))
+#D$num.obs = D[,1]+D[,2]
+#D$srate = D[,2]/D$num.obs
+
+##check updated values
+summary(dating$flirted_online_cleaned_recode)
+
+##compute mean
+mean(dating$flirted_online_cleaned_recode, na.rm=TRUE)
+
+#compute odds for question 16. a
+mean(dating$flirted_online_cleaned_recode, na.rm=TRUE)/(1-mean(dating$flirted_online_cleaned_recode, na.rm=TRUE))
+
+
+#review usr variable
+summary(dating$usr)
+
+dating$usr_cleaned <- mapvalues(dating$usr, from = c(" "), to= c("NA"))
+
+## NA is a string in dating$flirted_online_cleaned, recode to true NA
+is.na(dating) <- dating=="NA"
+
+# Can fix the remaining "NA" after fix by recreating the factor 
+dating$usr_cleaned<- factor(dating$usr_cleaned)
+
+summary(dating$usr_cleaned)
+
+# Only incorporate complete cases
+#compute lim_rows logical vector for the 3 variables in question
+lim_rows_glm = complete.cases(dating$flirted_online_cleaned_recode, dating$usr_cleaned)
+
+## just the complete cases
+dating_lim_glm = dating[lim_rows_glm,]
+summary(dating_lim_glm$usr_cleaned)
+
+
+#create dummy variables, make surburban base case
+contrasts(dating$usr_cleaned)<-contr.treatment(3,base = 2)
+
+## Begin with a bivariate logistic regression given 
+model1 = glm(flirted_online_cleaned_recode ~ usr_cleaned, data=dating_lim_glm, family=binomial())
+
+#grab AIC criterion
+summary(model1)
+
+exp(coef(model1))
+
+
+
+#create dummy variables, make surburban base case
+contrasts(dating$usr_cleaned)<-contr.treatment(3,base = 2)
+
+dating$usr_cleaned
+
+exp(coef(model1))
+
 ```
 
 
 **RESPONSE:** 
 A. What are the odds that a respondent in the sample has flirted online at some point (flirted_online)?
+The percentage of folks who flirted online is 0.2072072, thus, the odds that someone would have flirted online is 0.2072072/(1-0.2072072) = .26136. On the otherhand, the odds that someone did not flirt online is (1-0.2072072)/0.2072072 = 3.82
 
 B. Conduct a logistic regression to predict flirted_online as a function
 of where a respondent lives (usr). What Akaike Information Criterion (AI
 ) does your modelhave?
+1909.4
 
 C.  how much bigger are the odds that an urban respondent thas flirted
 online than the odds that a rural respondent has flirted online? Is this
