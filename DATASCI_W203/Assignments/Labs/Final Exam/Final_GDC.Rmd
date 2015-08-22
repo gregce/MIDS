@@ -1,46 +1,30 @@
 ---
 title: "Final"
 author: "Greg Ceccarelli"
-date: "August 16, 2015"
+date: "August 21, 2015"
 output: pdf_document
 ---
 
 ## Part 1. Multiple Choice (32 points)
 
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
+1. d
+2. b
+3. e
+4. b
+5. d
+6. a
+7. e
+8. a 
 
 
 ## Part 2. Test Selection (24 points)
 
 9. a
 10. d
-11. b could be c
+11. b 
 12. b
 13. a
 14. b
-
-```{r}
-
-##TO DELETE THIS SECTION, USED TO EXPLORE VARIABLES TO DECIDE ON TESTS
-
-summary(dating$lgbt)
-summary(dating$adults_in_household)
-
-anova(dating$lgbt,dating$adults_in_household)
-
-summary(dating$children0_5) 
-summary(dating$children6_11)
-summary(dating$children12_17)
-
-
-```
 
 ## Part 3: Data Analysis  (44 points )
 
@@ -53,7 +37,7 @@ setwd('/Users/ceccarelli/MIDS/DATASCI_W203/Assignments/Labs/Final Exam/')
 rm( list = ls() )
 
 #Load relevant packages
-library(ggplot2)
+#library(ggplot2)
 library(car)
 library(psych)
 library(gmodels)
@@ -100,10 +84,10 @@ hist(dating$life_quality_cleaned)
 
 ##review values for dating$years_in_relationship & age
 counts_yrs = as.data.frame(table(dating$years_in_relationship))
-counts_yrs[with(counts_yrs,order(-Freq)),]
+#counts_yrs[with(counts_yrs,order(-Freq)),]
 
 counts_age = as.data.frame(table(dating$age))
-counts_age[with(counts_age,order(-Freq)),]
+#counts_age[with(counts_age,order(-Freq)),]
 
 dating$years_in_relationship_cleaned <- dating$years_in_relationship
 
@@ -119,7 +103,7 @@ dating$years_in_relationship_cleaned <- factor(dating$years_in_relationship_clea
 
 #recheck counts to make sure nothing amiss
 counts = as.data.frame(table(dating$years_in_relationship_cleaned))
-counts[with(counts,order(-Freq)),]
+#counts[with(counts,order(-Freq)),]
 
 #check total counts, 59 NA's not included
 sum(as.numeric(counts$Freq))
@@ -140,8 +124,9 @@ is.na(dating$years_in_relationship_cleaned) <- dating$years_in_relationship_clea
 
 dating$years_in_relationship_cleaned <- factor(dating$years_in_relationship_cleaned)
 
+dating$years_in_relationship_cleaned <- as.numeric(as.character(dating$years_in_relationship_cleaned))
 #compute the mean for life quality to answer 15. b
-mean(dating$years_in_relationship_cleaned, na.rm =TRUE)
+mean(dating$years_in_relationship_cleaned,  na.rm =TRUE)
 
 ##check use_internet 
 summary(dating$use_internet)
@@ -197,13 +182,14 @@ AIC(lmod2)
 
 
 **RESPONSE:** 
+
 A. What is the mean quality of life in the sample?
 3.392921
 
 B. What is the mean of "years in relationship" in the sample?
 13.43887
 
-c. How many cases does this leave you with?
+C. How many cases does this leave you with?
 1089
 
 D. Fit an OLS Model. What is the slope coefficient you get? Is it
@@ -216,12 +202,17 @@ practically significant given the very low percent of variance explained.
 
 E. Fit a second OLS model. What is the slope coefficient for use_interne
 ? Is it statistically significant? What about practically significant?
-The slope coefficient for use internet is  0.404609136, meaning that internet users on average had a rating for "life quality" that much higher. In this case it is higher statistically significant with a p value of 5.19e-06. 
+The slope coefficient for use internet is  0.404609136, meaning that internet users on average had a
+rating for "life quality" that much higher. In this case it is higher statistically significant with a
+p value of 5.19e-06. 
 
 
 F. Compute the F-ratio and associated p-value between your two regressio
 models. Assess the improvement from your first model to your second.
-Using ANOVA, The F-ratio is 20.975 and is highly statisitically significant. Reduced AIC between model 1 and 2 indicate that we've improved predictive ability and that we have a higher quality model (with improved R squared)
+
+Using ANOVA, The F-ratio is 20.975 and is highly statisitically significant. Reduced AIC between model
+1 and 2 indicate that we've improved predictive ability and that we have a higher quality model (with
+improved R squared)
 
 
 16. Logistic Regression
@@ -287,9 +278,9 @@ lim_rows_glm = complete.cases(dating$flirted_online_cleaned_recode, dating$usr_c
 dating_lim_glm = dating[lim_rows_glm,]
 summary(dating_lim_glm$usr_cleaned)
 
-
 #create dummy variables, make surburban base case
-contrasts(dating$usr_cleaned)<-contr.treatment(3,base = 2)
+#contrasts(dating$usr_cleaned)<-contr.treatment(3,base = 1)
+#dating$usr_cleaned
 
 ## Begin with a bivariate logistic regression given 
 model1 = glm(flirted_online_cleaned_recode ~ usr_cleaned, data=dating_lim_glm, family=binomial())
@@ -299,27 +290,38 @@ summary(model1)
 
 exp(coef(model1))
 
-
-
-#create dummy variables, make surburban base case
-contrasts(dating$usr_cleaned)<-contr.treatment(3,base = 2)
-
-dating$usr_cleaned
-
+#output odds, manually create odds ratio in answer
 exp(coef(model1))
+
+##odds ratio
+2.1015464/0.1589404 
 
 ```
 
 
 **RESPONSE:** 
+
 A. What are the odds that a respondent in the sample has flirted online at some point (flirted_online)?
-The percentage of folks who flirted online is 0.2072072, thus, the odds that someone would have flirted online is 0.2072072/(1-0.2072072) = .26136. On the otherhand, the odds that someone did not flirt online is (1-0.2072072)/0.2072072 = 3.82
+
+The percentage of folks who flirted online is 0.2072072, thus, the odds that someone would have flirted
+online is 0.2072072/(1-0.2072072) = .26136. On the otherhand, the odds that someone did not flirt
+online is (1-0.2072072)/0.2072072 = 3.82
 
 B. Conduct a logistic regression to predict flirted_online as a function
 of where a respondent lives (usr). What Akaike Information Criterion (AI
 ) does your modelhave?
+
 1909.4
 
-C.  how much bigger are the odds that an urban respondent thas flirted
+C. how much bigger are the odds that an urban respondent thas flirted
 online than the odds that a rural respondent has flirted online? Is this
 effect practically significant?
+
+Based on the output, the odds are:
+usr_cleanedUrban:  2.1015464 
+(Intercept)->Rural 0.1589404 
+Odds Ratio: 13.22223, that is, the odds of an urban respondant having flirted online are 13 times the
+odds of a rural respondant. While there is no "accepted test" to calculate practical significance in
+this scenaro, this result certainly would seem to be, especially given the fact that each of coefficie
+t values are statistically significant. 
+
