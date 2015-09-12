@@ -1,0 +1,21 @@
+Chapter 3	 	 
+Page #	Description	File Name
+53	Table 3.1	GerberGreenBook_Chapter3_Table_3_1.csv
+65	Box 3.7	GerberGreenBook_Chapter3_RIandTTest_Box_3_7.R
+65	Box 3.7	GerberGreenBook_Chapter3_Donations.csv
+68	Table 3.2, In-Text Example	Clingingsmith_et_al_QJE_2009.csv
+68	Table 3.2, In-Text Example	Clingingsmith_et_al_QJE_2009.dta
+69	Table 3.2	GerberGreenBook_Chapter3_Table_3_2.csv
+74	Table 3.3	GerberGreenBook_Chapter3_Table_3_3.csv
+75	Figure 3.1	GerberGreenBook_Chapter3_Figure_1.R
+76	Table 3.4	GerberGreenBook_Chapter3_Table_3_4.csv
+78	Table 3.5	GerberGreenBook_Chapter3_Table_3_5.csv
+81	Table 3.6	GerberGreenBook_Chapter3_Table_3_6.csv
+82	Table 3.7	GerberGreenBook_Chapter3_Table_3_7.csv
+84	InText Example (ACORN)	Arceneaux_AAAPSSsubset_2005_CodeforCh3.R
+84	InText Example (ACORN)	Arceneaux_AAAPSSsubset_2005.dta
+84	InText Example (ACORN)	Arceneaux_AAAPSSsubset_2005.csv
+87	Exercise 3.5	GerberGreenBook_Chapter3_Exercise_3_5.dta
+88	Exercise 3.6	Clingingsmith_et_al_QJE_2009.csv
+88	Exercise 3.8	Titiunik_WorkingPaper_2010.csv
+90	Exercise 3.9	Camerer_JPEsubset_1998.dta
