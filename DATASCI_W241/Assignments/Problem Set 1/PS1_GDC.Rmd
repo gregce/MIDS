@@ -10,7 +10,7 @@ output: pdf_document
 a. Concisely, $Y_i(1)$ is the outcome if the subject _i_ is exposed to the treatment 
 b. $E[Y_i(1)|d_i=0]$ denotes the expectation of $Y_i(1)$ (i.e. the outcome of the subject _i_ exposed to the treatment) when one subject is selected at random from the subjects that weren't treated (i.e. the counterfactual). In practice we won't actually observe $Y_i(1)$ for an untreated subject.
 c. $E[Y_i(1)|d_i=1]$ is the expectation of $Y_i(1)$ (i.e. the outcome) when one subject is selected at random from the subjects that were treated whereas $E[Y_i(1)]$ is the expected $Y_i(1)$ potential outcome for the entire set of subjects.
-d. (extra credit)
+d. The notation $E[Y_i(1)|d_i=1]$ is the expectation of a potential outcome for one subject selected at random (indicated by _i_) from those subjects given the treatement, whereas $E[Y_i(1)|D_i=1]$ can be regarded as shorthand for $E[E[Y_i(1)|d_i=1,d]]$ or the expectation of the expected value after summing over all possible _d_ vectors.   
 
 ## 2. FE, exercise 2.2
 
@@ -79,12 +79,16 @@ mat.jfd
 e.
 ```{r}
 #use table to calculate condition expectation that E[Yi(O)|Yi(1)>15]
-#
+marginal.e <- mat.jfd[4,3]+mat.jfd[4,2]
+
+10*(mat.jfd[1,2]/marginal.e)+15*(mat.jfd[2,3]/marginal.e)+20*(mat.jfd[3,3]/marginal.e)
 ```
 f.
 ```{r}
 #use table to calculate condition expectation that E[Yi(1)|Yi(0)>15]
 #
+marginal.f <- mat.jfd[3,4]
+15*(mat.jfd[3,1]/marginal.f)+20*(mat.jfd[3,2]/marginal.f)+30*(mat.jfd[3,3]/marginal.f)
 ```
 
 ## 4. More practice with potential outcomes
@@ -106,12 +110,13 @@ b.
 hist(v$treatment.effect)
 ```
 
-Paragraph to add
+In the case of example hypotehtical treatment effects at the child level, there are many factors that might influence different effects and explain this distribution: genetics (i.e. different rates of eye development of those children measured at age 6), differing amounts of actual outside exposure (>10 hours on average could be 10 or 40), different responses to outside exposure including accidents that could impact eyesight. Essentially, any of these factors may serve to explain why for the most part 8/10 cases the treatment effect was 0 whereas there was one positive and one negative case.
+
 
 c.
 ```{r}
 #test computing true average treatment effect
-sum(v$treatment.effect) / nrow(v) == sum(v$Yi.1.)/nrow(v)-sum(v$Yi.0.)/nrow(v)
+#(sum(v$treatment.effect) / nrow(v)) == (sum(v$Yi.1.)/nrow(v)-sum(v$Yi.0.)/nrow(v))
 #print ATE
 sum(v$treatment.effect) / nrow(v) 
 ```
@@ -137,34 +142,102 @@ e.
 The ATE -.06 of this new experiment differs by .02 when compared to ATE -.04 of the hypothetical example. Intuitively, a "random" allocation of children to treatment effects will produce groups of children that have different average potential outcomes. 
 
 f.
-
+Two of these are not allowed: the null set and the whole set, as both result in a treatment / control with no members because we would have counted each group twice, once selecting it and once selecting all the rest. Accordingly to make different groups of 10 children (with minimum one in control and one in treatment) there are the below number of ways: 
+```{r}
+(1/2)*(2^10-2)
+```
 
 g.
+```{r}
+#generate indexes
+rows<-nrow(v)
+first_set<-1:5
+second_set <-6:10
+#define new dataset
+v.subsets <- v[1:3]
+#assign first set of children to treatment by setting their hypothetical control value to NA
+v.subsets[first_set,2]<-NA
+#assign even children to control by setting their hypothetical treatment value to NA
+v.subsets[second_set,3]<-NA
+#Estimated average based on observed data
+v.subsets.mean.diff <-  mean(v.subsets$Yi.1.,na.rm = TRUE) -  mean(v.subsets$Yi.0.,na.rm = TRUE)
+#print ate
+v.subsets.mean.diff
+```
 
-
-
-h.
+h. Intuitively the difference is exacerbated by the fact that the populations are no longer comparable because they weren't randomly assigned a treatment and the individual potential outcomes of the children no longer equate to the average potential outcomes of the population of children.
 
 
 ## 5. FE, exercise 2.5
 
-a. The problem is how to randomize treatment for six subjects asked to donate time to an adult literacy program.
+a. The problem is how to randomize treatment for six subjects asked to donate time to an adult literacy program. There are 3 approaches to decide amongst for randomizing the treatment: 1) coin flip 2) playing cards 3) envelopes. What are the strengths and weaknesses of each approach?
 
-b.
+1) Strengths: Each subject has an identical probability of being assigned to the control/treatment group (30 or 60 mins respectively)
+1) Weaknesses: When N is small (as it is in this case, 6), the random chance inherent to flipping a coin will become apparent. We might end up with far fewer subjects in treatment or control than anticipated
 
-c.
+2) Strengths: Because there is no replacement of cards, you're guaranteeing that your population is receiving treatment and control groups that are identically sized
+2) Weaknesses: While this method might be desirable, it would not scale well pratically and is subject to interference by the individual adminstering the cards because they have knowledge of the order
+
+
+3) Strengths: Similar to method two, you're able to guarantee m of N units in treatment and control.
+3) Weaknesses: Like above, this method does not scale well if the number of subjects were very large.
+
+b. The example of simple random assignment in case a. would probably achieve the desired effect based on a larger sample size; however, none of these methods scale well. It would be more desirable to randomly permute the order of all 600 subjects and label the first m subjects as your treatment group.
+
+c. expected value of total assigned minutes for the coin toss is:
+```{r}
+   ((1/2)*30+(1/2)*60)+
+   ((1/2)*30+(1/2)*60)+
+   ((1/2)*30+(1/2)*60)+
+   ((1/2)*30+(1/2)*60)+
+   ((1/2)*30+(1/2)*60)+
+   ((1/2)*30+(1/2)*60)
+```
+expected value of the sealed envelope method (if I've understood the method correctly would be the same -- you know that you'll assign 3 subjects to the control and 3 subjects to the treatment):
+```{r}
+   30+
+   30+
+   30+
+   60+
+   60+
+   60 
+```
 
 
 ## 6. FE, exercise 2.6
 
+This is a prime example of an observational study. The researcher, while using a random sample, did not randomly assign _the treatment_ to the students in the sample. In this case, there were likely underlying factors (geographic  area, parental status, socioeconomic status) about those who took a preparatory class that were not random. In order for this effort to qualify as an experiement, the researcher should select a pool of students prior to high school and then randomly assign them to attend either public or prep school which effectively controls for other factors (as mentioned above).
 
 
 ## 7. FE, exercise 2.8
 
+a. Across treatment effects, Bribe, RTIA, NGO and Control, the proportion of applicants who receieved residence verification was collectively 98.8% - 89 applied and all but 1 received verification. The speed of verification when comparing Bribe and all other treatments (RTIA, NGO and Control) is very different. The median number of days less is 20 days when comparing Bribe with the rest.
+
+b. By treatment, the proportion of applicants who actually received a ration card varies significantly. 
+Bribe = 24/24 or 100% of applicants who applied received a ration card
+RTIA = 20/23 or 87% of applicants who applied received a ration card
+NGO = 3/18 or 16% of applicants received a ration card
+Control = 5/21 or 23.8% of applicants received a ration card
+
+c. The results seem to suggest that the RTIA is a fairly effective measure of ensuring that ultimately those who apply or request a government service ultimately receive it. 
 
 
 ## 8. FE, exercise 2.9
 
+a. The primary issue with the researcher's assumption that the lottery chooses winners at random is that those who decide to play the lottery, unfortunately, are not. Those who decide to play the lottery, are, in general, not a random subset of the population. Those who decide to play are likely on average in a more deleterious situation than those who don't and thus aren't necessarily comparable to others,who selected at random, did not win. For this resason, the researcher could, in an ideal case, improve the ability to draw causal inferences about estate tax by first drawing a sample of U.S. adults and then randomly assigning those people "lottery winnings" which helps prevent the selection bias inherent in this example.
 
+b. While this new design does help us with excludability, it does not allow us to completely safely assume that the poential outcomes of those who report winning are identical. We still have the issue of selection bias which impacts our ability of excludability as well as an issue of data being gathered longitudinally which may jeopardize symmetry. 
 
 ## 9. FE, exercise 2.12(a)
+a. 
+Setting this up:
+
+* $d_i$ = 0 when prisoners read less than 3 hours each day
+* $d_i$ = 1 when prisoners read more than 3 hours each day 
+* $Y_i(0)$ = potential number of violent encounters when reading less than 3 hours a day
+* $Y_i(1)$ = potential number of violent encounters when reading more than 3 hours a day
+
+The reason why one might be hesitant to assume that $E[Y_i(0)|D_i=0]$ = $E[Y_i(0)|D_i=1]$ and $E[Y_i(1)|D_i=0]$ = $E[Y_i(1)|D_i=1]$ is that, in the first case, where we want to say the expectation of violent encounters of those who read less than 3 hours is the same as the expectation of violent encounters _had_ they read more than 3 hours a day, is that since _nature_ has selected them, there isn't any guarantee that those who decided to read less are equivalent to those who might decided to read more. Accordingly, E[Y_i(0)|D_i=0]$ =/= $E[Y_i(0)|D_i=1]$ and we can't easily generalize any potential outcomes unless there is random assignment of the treatment because the expectation truly should be different on average.
+
+
+
