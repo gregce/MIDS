@@ -1,0 +1,112 @@
+---
+title: "Problem Set #2 - DATASCI W241"
+author: "Greg Ceccarelli"
+date: "Sept 29, 2015"
+output: pdf_document
+---
+
+## 1. FE, exercise 3.6
+
+```{r}
+#set up working envrionment
+setwd("MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3/")
+#clear variables
+rm( list = ls() )
+#read in tabular data
+data <- read.csv("Clingingsmith_et_al_QJE_2009dta.csv", sep=",", header = TRUE)
+#create shorthand reference
+d<-data
+##replicate the table on 3.2 in the book
+prop.table(table(d$views,d$success),2)*100
+
+#Create two vectors to sample from based on the data
+Y <- d$views #outcome
+Z <- d$success #treatment
+
+# number of RI iterations
+numiter <- 10000 
+set.seed(1234567) # set random number seed (so that results can be replicated)
+
+#compute ATE prior to randomization
+denom <- var(Z)
+ate <- cov(Y,Z)/denom
+
+#iterate
+tauRI <- rep(NA,numiter)
+
+for (i in 1:numiter) {
+
+Zri <- sample(Z)
+tauRI[i] <- cov(Y,Zri)/denom
+
+if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
+}
+
+```
+
+How many of the simulated random assignments generate an ATE that is at least as large as the actual estimate of the ATE?
+```{r}
+nrow(subset(as.data.frame(tauRI),tauRI>=ate))
+```
+
+What is the implied one-tailed p-value?
+```{r}
+pvalue <- round(nrow(subset(as.data.frame(tauRI),tauRI>=ate))/numiter,3)
+pvalue
+```
+
+
+How many of the simulated random assignments generate an ATE that is at least as large in absolute value as the actual estimate of the ATE?
+```{r}
+#wrap tauRI in abs function
+nrow(subset(as.data.frame(tauRI),abs(tauRI)>=ate))
+```
+
+What is the implied one-tailed p-value?
+```{r}
+#wrap tauRI in abs function
+pvalue.twotailed <- round(nrow(subset(as.data.frame(tauRI),abs(tauRI)>=ate))/numiter,3)
+pvalue.twotailed
+```
+
+## 3. FE, exercise 3.11
+
+a. 
+```{r}
+#set up working envrionment
+p.subset <- p[c(2:3)]
+#create matrix to count observations by variable pairs
+mat<-table(p.subset)
+#print matrix
+mat
+```
+
+
+## 4. Question 4
+
+a.
+
+b.
+
+c.
+
+d.
+
+
+## 5. Question 5
+
+a. 
+
+b.
+
+c.
+
+d.
+
+e.
+
+f.
+
+g.
+
+
