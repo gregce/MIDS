@@ -9,7 +9,7 @@ output: pdf_document
 
 ```{r}
 #set up working envrionment
-setwd("MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3/")
+#setwd("MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3/")
 #clear variables
 rm( list = ls() )
 #read in tabular data
@@ -195,40 +195,172 @@ hist(a.obs.0)
 
 a. 
 ```{r}
-#set up working envrionment
-p.subset <- p[c(2:3)]
-#create matrix to count observations by variable pairs
-mat<-table(p.subset)
-#print matrix
-mat
+#read in tabular data
+data <- read.csv("GerberGreenBook_Chapter3_Table_3_3.csv",header = TRUE)
+#create shorthand reference
+c<-data
+View(c)
 ```
 
 
 ## 4. Question 4
 
-a.
+```{r}
+#problem set up
+cws <-  1
+advertising <- .10
+users <- 1:1000000
+profit <- 100
+conversion <- .005
+```
+
+a. By how much does the ad campaign need to increase the probability of purchase in order to be “worth it” and a positive ROI?
+
+```{r}
+options("scipen"=100, "digits"=10)
+average.sales<- length(users)*conversion*profit
+average.sales
+cost<-length(users)*.10
+required.conversion <- (average.sales+cost+1)/(length(users)*profit)
+required.increase <- (required.conversion - conversion)/conversion*100
+required.increase
+```
 
 b.
 
-c.
+```{r}
+measuredeffect<-.002
+size<-length(users)/2
+treatment <- (length(users)/2)*(measuredeffect+conversion)
+control <- (length(users)/2)*(conversion)
+#prop.test(x=c(treatment,control),n=c(size,size))
+p<-(treatment+control)/(size+size)
+p
+se <- sqrt(p*(1-p)*((1/size)+(1/size)))*size
+se
+#confidence interval
+conf<- c(treatment-se*1.96, treatment+se*1.96)
+conf
+```
 
-d.
+c. Is this confidence interval precise enough that you would recommend running this experiment? Why or why not?
+Yes, not only is it statistically significant (per a prop.test) but the interval does not dip behind the average expectation 
+
+
+d. What would be the width of the confidence interval for this experiment if only 1% of users were placed in the control group?
+
+```{r}
+measuredeffect<-.002
+size.treatment<-length(users)*(.99)
+size.control<-length(users)*(.01)
+treatment <- (size.treatment)*(measuredeffect+conversion)
+control <- (size.control)*(conversion)
+#prop.test(x=c(treatment,control),n=c(size.treatment,size.control))
+p<-(treatment+control)/(size.treatment+size.control)
+p
+se <- sqrt(p*(1-p)*((1/size.treatment)+(1/size.control)))*size.treatment
+se
+#confidence interval
+conf<- c(treatment-se*1.96, treatment+se*1.96)
+conf
+```
 
 
 ## 5. Question 5
 
-a. 
+```{r}
+#read in tabular data
+data <- read.csv("PS 2 data - list_luckingreiley_auction_data.csv",header = TRUE)
+#create shorthand reference
+r<-data
 
-b.
+# The means look different between groups
+by(r$bid, r$uniform_price_auction, mean, na.rm = TRUE)
+```
 
-c.
+a. Compute a 95% confidence interval for the difference between the treatment mean and the control mean, using
+analytic formulas for a two-sample t-test from your earlier statistics course. 
 
-d.
+```{r}
+#Check if means statistically different 
+# From the qqplot, it's not clear if loggdp is normally distributed, doesn't look like it
+qqnorm(r$bid)
 
-e.
+# The Shapiro test suggests that it's not
+shapiro.test(r$bid)
 
-f.
+# But we have a large sample size, so we can rely on 
+# the central limit theorem and use a regular t.test
+t.test(r$bid ~ r$uniform_price_auction, r, alternative = "two.sided")
+```
 
-g.
+b. In plain language, what does this confidence interval mean?
+The confidence interval (3.557140637 20.854624069) is the range of values that is likely to contain the population mean in this case.
+
+c.  Calculate the 95% confidence interval you get from the regression.
+
+```{r}
+library(car)
+#look at a quick scatter
+scatterplot(r$bid,r$uniform_price_auction)
+
+# Build regression model
+model = lm(bid~uniform_price_auction, data = r)
+summary(model)
+
+estimate <- as.vector(model$coefficients[1])
+standard.error <- abs(as.vector(model$coefficients[2]))
+
+lower.bound <- estimate - standard.error * 1.96
+upper.bound <- estimate + standard.error * 1.96
+
+cat("Conf Interval = ", lower.bound, upper.bound)
+
+```
+
+d. On to p-values. What p-value does the regression report?
+```{r}
+cat("p-value = ", summary(model)$coefficients[,4])
+```
+
+e. Now compute the same p-value using randomization inference.
+```{r}
+numiter <- 10000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
+set.seed(12) # set random number seed (so that results can be replicated)
+
+# Compute RI Distribution
+
+Y <- r$bid
+Z <- r$uniform_price_auction
+
+denom <- var(Z)
+tau <- cov(Y,Z)/denom
+
+tauRI <- rep(NA,numiter)
+
+for (i in 1:numiter) {
+
+Zri <- sample(Z)
+tauRI[i] <- cov(Y,Zri)/denom
+
+if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
+}
+
+pvalue <- round(sum(tauRI >= abs(tau))/numiter,3)
+pvalue
+```
+
+
+f. Compute the same p-value again using analytic formulas for a two-sample t-test from your earlier statistics course. (Also see part (a).)
+
+```{r}
+# compare with traditional t-tests
+  t.test(Y~Z,var.equal=FALSE,alternative = "two.sided")
+```
+
+g. Compare the two p-values in parts (e) and (f). Are they much different? Why or why not? How might your answer to this question change if the sample size were different?
+
+The t-tests aren't very much different in real terms. They would converge as the sample size increased.
+
 
 
