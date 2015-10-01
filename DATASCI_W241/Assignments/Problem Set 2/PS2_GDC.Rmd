@@ -228,10 +228,48 @@ names(cl1)[3] <- "Cluster"
 cl1.0 <- unlist(subset(cl1,cl1$Cluster==0)[1])
 cl1.1 <- unlist(subset(cl1,cl1$Cluster==0)[2])
 
-se.ate <- (4*var(cl1.0)/(7-4))+(3*var(cl1.1)/(4))+(2*cov(cl1.0,cl1.1))
-
+se.ate <- sqrt((1/(7-1))*((4*var(cl1.0)/(7-4))+(3*var(cl1.1)/(4))+(2*cov(cl1.0,cl1.1))))
+cat("SE for Cluster Assingment 1 = ", se.ate)
 ```
 
+a. 
+```{r}
+setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
+#clear variables
+rm( list = ls() )
+#read in tabular data
+data <- read.csv("GerberGreenBook_Chapter3_Table_3_3.csv",header = TRUE)
+#create shorthand reference
+c<-data
+##View(c)
+c$Y
+c$D
+cluster.ids<-c(1,2,3,4,5,6,7,7,6,5,4,3,2,1)
+cluster.ids
+all.clusters <- unique(cluster.ids)
+
+randomize.clustered <- function(){
+  treat.cluster.ids <- sample(all.clusters, length(all.clusters)*(3/7))
+  return(
+    as.numeric(cluster.ids %in% treat.cluster.ids)
+  )
+}
+randomize.clustered()
+
+cl1<-as.data.frame(cbind(c$Y,c$D,randomize.clustered()))
+names(cl1)[1] <- "Y"
+names(cl1)[2] <- "D"
+names(cl1)[3] <- "Cluster"
+
+cl1.0 <- unlist(subset(cl1,cl1$Cluster==0)[1])
+cl1.1 <- unlist(subset(cl1,cl1$Cluster==0)[2])
+
+se.ate <- sqrt((1/(7-1))*((4*var(cl1.0)/(7-4))+(3*var(cl1.1)/(4))+(2*cov(cl1.0,cl1.1))))
+cat("SE for Cluster Assingment 2 = ", se.ate)
+```
+
+c.
+They lead to different standard errors because there is variability in cluster level means across clusters. For large expeirments its crucial to look for ways to INCREASE the number of clusters to reduce this penalty.
 
 ## 4. Question 4
 
