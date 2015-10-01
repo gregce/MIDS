@@ -1,7 +1,7 @@
 ---
 title: "Problem Set #2 - DATASCI W241"
 author: "Greg Ceccarelli"
-date: "Sept 29, 2015"
+date: "Sept 30, 2015"
 output: pdf_document
 ---
 
@@ -55,7 +55,6 @@ pvalue <- round(nrow(subset(as.data.frame(tauRI),tauRI>=ate))/numiter,3)
 pvalue
 ```
 
-
 How many of the simulated random assignments generate an ATE that is at least as large in absolute value as the actual estimate of the ATE?
 ```{r}
 #wrap tauRI in abs function
@@ -67,6 +66,129 @@ What is the implied one-tailed p-value?
 #wrap tauRI in abs function
 pvalue.twotailed <- round(nrow(subset(as.data.frame(tauRI),abs(tauRI)>=ate))/numiter,3)
 pvalue.twotailed
+```
+
+## 2. FE, exercise 3.8
+
+```{r}
+library("foreign")
+#read in tabular data
+data <- read.dta("Titiunik_WorkingPaper_2010.csv.dta")
+#create shorthand reference
+t<-data
+```
+
+a. For each state, estimate the effect of having a two-year term on the number of bills introduced?
+```{r}
+#Create two vectors for Texas
+t.Y <- unlist(subset(t,t$texas0_arkansas1==0)[2]) #outcome
+t.Z <- unlist(subset(t,t$texas0_arkansas1==0)[1])#treatment
+
+#compute ATE for Texas
+t.denom <- var(t.Z)
+t.ate <- cov(t.Y,t.Z)/t.denom
+cat("Texas ATE = ", t.ate)
+
+##done another way
+#mean(unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==0)[2]))-mean(unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==1)[2]))
+
+#Create two vectors for Texas
+a.Y <- unlist(subset(t,t$texas0_arkansas1==1)[2]) #outcome
+a.Z <- unlist(subset(t,t$texas0_arkansas1==1)[1])#treatment
+
+#compute ATE for Arkansas
+a.denom <- var(a.Z)
+a.ate <- cov(a.Y,a.Z)/a.denom
+cat("Arkansas ATE = ", a.ate)
+```
+
+b. For each state, estimate the standard error of the ATE?
+```{r}
+##texas
+t.obs.0 <- unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==0)[2])
+t.obs.1 <- unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==1)[2])
+
+##calculate t.Var.hat.1 manually
+sum((t.obs.1 - ((sum(t.obs.1)/length(t.obs.1))))^2)/(length(t.obs.1)-1)
+##matches
+var(t.obs.1)
+
+t.se.hat <- sqrt((var(t.obs.0)/length(t.obs.0)) + (var(t.obs.1)/length(t.obs.1)))
+cat("Texas STE of ATE = ", t.se.hat)
+
+##arkansas
+a.obs.0 <- unlist(subset(t,t$texas0_arkansas1==1 & t$term2year==0)[2])
+a.obs.1 <- unlist(subset(t,t$texas0_arkansas1==1 & t$term2year==1)[2])
+
+a.se.hat <- sqrt((var(a.obs.0)/length(a.obs.0)) + (var(a.obs.1)/length(a.obs.1)))
+cat("Arkansas STE of ATE = ", a.se.hat)
+
+```
+
+c. Estimate overall of ATE for both states combined
+```{r}
+##
+t.pe.count<-length(t.obs.0)+length(t.obs.1)
+a.pe.count<-length(a.obs.0)+length(a.obs.1)
+
+pooled.ate <- a.ate*(a.pe.count/sum(t.pe.count,a.pe.count))+t.ate*(t.pe.count/sum(t.pe.count,a.pe.count))
+cat("Pooled ATE = ", pooled.ate) 
+```
+
+d. Explain why pooling the data leads to biased estimates of ATE?
+Quite simply, there are not the same number of observations in the treatment and control in each state
+
+e. Insert the estimated standard errors into equation 3.12 to estiamte standard error for overall ATE
+```{r}
+pooled.se <- sqrt(a.se.hat^2*(a.pe.count/sum(t.pe.count,a.pe.count))^2+a.se.hat^2*(t.pe.count/sum(t.pe.count,a.pe.count))^2)
+cat("Pooled SE for Overall ATE = ", pooled.se)
+```
+
+f. use randomization inference to test sharp null 
+```{r}
+
+numiter <- 10000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
+set.seed(1234567) # set random number seed (so that results can be replicated)
+
+##texas
+t.tauRI <- rep(NA,numiter)
+
+for (i in 1:numiter) {
+
+t.Zri <- sample(t.Z)
+t.tauRI[i] <- cov(t.Y,t.Zri)/t.denom
+
+if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
+}
+
+t.pvalue <- round(sum(t.tauRI >= t.ate)/numiter,3)
+t.pvalue
+
+##arkansas
+a.tauRI <- rep(NA,numiter)
+
+for (i in 1:numiter) {
+
+a.Zri <- sample(a.Z)
+a.tauRI[i] <- cov(a.Y,a.Zri)/a.denom
+
+if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
+}
+
+a.pvalue <- round(sum(a.tauRI >= a.ate)/numiter,3)
+a.pvalue
+```
+
+g. plotting histograms per instruction
+```{r}
+#texas treatment & control
+hist(t.obs.1)
+hist(t.obs.0)
+
+#arkansas treatment & control
+hist(a.obs.1)
+hist(a.obs.0)
+
 ```
 
 ## 3. FE, exercise 3.11
