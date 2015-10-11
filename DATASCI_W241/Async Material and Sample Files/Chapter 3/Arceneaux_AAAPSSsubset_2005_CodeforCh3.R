@@ -32,7 +32,7 @@ covs <- as.matrix(kansas[,2:21])  # covariates are past voter turnout if you car
 
 probs <- genprobexact(Z,clustvar=clust)  # subjects are clustered by precinct
 
-numiter <- 100000  # actual number of randomizations in this case is 40116600
+numiter <- 1000  # actual number of randomizations in this case is 40116600
 
 perms <- genperms(Z,maxiter=numiter,clustvar=clust)    # clustered assignment
 numiter <- ncol(perms)  # reset numiter so that it is no larger than the maximum number of possible randomizations

@@ -7,12 +7,14 @@ rm(list = ls())
 # Example for windows: setwd(C:/Documents/Data/) or setwd(C:\\Documents\\Data\\)
 # If not sure of working directory, type: getwd()
 
+setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3/")
+
 # Import Data
-dataf <- read.csv("GerberGreenBook_Chapter3_Donations.csv",head=TRUE,sep=",") # enter your file name here
+  dataf <- read.csv("GerberGreenBook_Chapter3_Donations.csv",head=TRUE,sep=",") # enter your file name here
 
 # Advanced Options
 
-numiter <- 100000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
+numiter <- 10000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
 set.seed(1234567) # set random number seed (so that results can be replicated)
 
 # Compute RI Distribution

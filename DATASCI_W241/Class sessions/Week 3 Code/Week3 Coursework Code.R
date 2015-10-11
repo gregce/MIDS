@@ -2,8 +2,7 @@
 #Simulate an experiment with no effect
 group <- c(rep("Man",20),rep("Woman",20))
 po.control <- c(seq(from = 1, to = 20), seq(from = 51, to = 70))
-po.treatment <- po.control #no effect because potential outcomes in
-treatment are the same
+po.treatment <- po.control #no effect because potential outcomes in treatment are the same
 po.control
 po.treatment
 #Function to randomly assign units to treatment and control
@@ -12,8 +11,7 @@ randomize()
 randomize()
 treatment <- randomize() #Conduct randomization for this experiment
 treatment
-#Realized outcomes - treatment outcome for those randomized to
-treatment and control outcome forthose randomized to control
+#Realized outcomes - treatment outcome for those randomized totreatment and control outcome forthose randomized to control
 outcomes <- po.treatment * treatment + po.control*(1-treatment)
 outcomes
 #Function to estimate the average treatment effect
