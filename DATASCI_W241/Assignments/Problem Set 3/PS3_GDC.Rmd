@@ -1,437 +1,142 @@
 ---
-title: "Problem Set #2 - DATASCI W241"
+title: "Problem Set #3 - DATASCI W241"
 author: "Greg Ceccarelli"
-date: "Sept 30, 2015"
+date: "October 30, 2015"
 output: pdf_document
 ---
 
-## 1. FE, exercise 3.6
+## Problem 1.
 
 ```{r}
+library(dplyr)
+library(stargazer)
 
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
+setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Assignments/Problem Set 3/")
 #clear variables
 rm( list = ls() )
 #read in tabular data
-data <- read.csv("Clingingsmith_et_al_QJE_2009dta.csv", sep=",", header = TRUE)
-#create shorthand reference
-d<-data
-##replicate the table on 3.2 in the book
-prop.table(table(d$views,d$success),2)*100
+d <- read.csv("broockman_green_anon_pooled_fb_users_only.csv", sep=",", header = TRUE)
 
-#Create two vectors to sample from based on the data
-Y <- d$views #outcome
-Z <- d$success #treatment
+##Begin Problem 1 A##
+#create new data frame only containing Study 1 data
+d.s1 <- filter(d, grepl("Study 1",cluster)) %>%
+  na.omit()
 
-# number of RI iterations
-numiter <- 10000 
-set.seed(1234567) # set random number seed (so that results can be replicated)
+#simple plot 
+plot(x = d.s1$treat_ad, y=d.s1$name_recall)
 
-#compute ATE prior to randomization
-denom <- var(Z)
-ate <- cov(Y,Z)/denom
+#regress treatment against name recall
+mod1_summary <- summary(lm(name_recall ~ treat_ad,d.s1))
 
-#iterate
-tauRI <- rep(NA,numiter)
+#review line slope
+abline(lm(name_recall ~ treat_ad,d))
 
-for (i in 1:numiter) {
+#pull out data for confidence interval creation
 
-Zri <- sample(Z)
-tauRI[i] <- cov(Y,Zri)/denom
+ate <- mod1_summary$coefficients[2,1]
+se <- mod1_summary$coefficients[2,2]
 
-if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
+##End Problem 1 a. 
+ci <- c(ate-1.96 *se, ate+1.96*se)
+
+##Begin Problem 1 c.
+
+#initialize clustered standard errors function
+cl <- function(fm, cluster){
+  require(sandwich, quietly = TRUE)
+	require(lmtest, quietly = TRUE)
+	M <- length(unique(cluster))
+	N <- length(cluster)
+	K <- fm$rank
+	dfc <- (M/(M-1))*((N-1)/(N-K))
+	uj <- apply(estfun(fm),2, function(x) tapply(x, cluster, sum));
+	vcovCL <- dfc*sandwich(fm, meat=crossprod(uj)/N)
+	coeftest(fm, vcovCL)
 }
 
-```
+#make sure to set cluster variable as a factor
+d.s1$cluster <- factor(as.character(d.s1$cluster))
 
-How many of the simulated random assignments generate an ATE that is at least as large as the actual estimate of the ATE?
-```{r}
-nrow(subset(as.data.frame(tauRI),tauRI>=ate))
-```
+#run standard errors
+c.se <- cl(lm(name_recall ~ treat_ad,d.s1), d.s1$cluster)
 
-What is the implied one-tailed p-value?
-```{r}
-pvalue <- round(nrow(subset(as.data.frame(tauRI),tauRI>=ate))/numiter,3)
-pvalue
-```
+c.se.ate <- c.se[2,1]
+c.se.se <- c.se[2,2]
 
-How many of the simulated random assignments generate an ATE that is at least as large in absolute value as the actual estimate of the ATE?
-```{r}
-#wrap tauRI in abs function
-nrow(subset(as.data.frame(tauRI),abs(tauRI)>=ate))
-```
+##End Problem 1 c. 
+c.se.ci <- c(c.se.ate -1.96 *c.se.se, c.se.ate+1.96*c.se.se)
 
-What is the implied one-tailed p-value?
-```{r}
-#wrap tauRI in abs function
-pvalue.twotailed <- round(nrow(subset(as.data.frame(tauRI),abs(tauRI)>=ate))/numiter,3)
-pvalue.twotailed
-```
+#stargazer(cl(lm(name_recall ~ treat_ad,d.s1), d.s1$cluster), lm(name_recall ~ treat_ad,d.s1), type = "text")
 
-## 2. FE, exercise 3.8
+#create new data frame only containing Study 2 data and removing NAs
+d.s2 <- filter(d, grepl("Study 2",cluster)) %>%
+  na.omit()
 
-```{r}
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
-#clear variables
-rm( list = ls() )
-require("foreign")
-#read in tabular data
-data <- read.dta("Titiunik_WorkingPaper_2010.csv.dta")
-#create shorthand reference
-t<-data
-```
+d.s2$cluster <- factor(as.character(d.s2$cluster))
 
-a. For each state, estimate the effect of having a two-year term on the number of bills introduced?
-```{r}
-#Create two vectors for Texas
-t.Y <- unlist(subset(t,t$texas0_arkansas1==0)[2]) #outcome
-t.Z <- unlist(subset(t,t$texas0_arkansas1==0)[1])#treatment
 
-#compute ATE for Texas
-t.denom <- var(t.Z)
-t.ate <- cov(t.Y,t.Z)/t.denom
-cat("Texas ATE = ", t.ate)
+#run standard errors
+c2.se <- cl(lm(name_recall ~ treat_ad, d.s2), d.s2$cluster)
 
-##done another way
-#mean(unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==0)[2]))-mean(unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==1)[2]))
+c2.se.ate <- c2.se[2,1]
+c2.se.se <- c2.se[2,2]
 
-#Create two vectors for Texas
-a.Y <- unlist(subset(t,t$texas0_arkansas1==1)[2]) #outcome
-a.Z <- unlist(subset(t,t$texas0_arkansas1==1)[1])#treatment
 
-#compute ATE for Arkansas
-a.denom <- var(a.Z)
-a.ate <- cov(a.Y,a.Z)/a.denom
-cat("Arkansas ATE = ", a.ate)
-```
+##End Problem 1 d. 
+c2.se.ci <- c(c2.se.ate -1.96 *c2.se.se, c2.se.ate+1.96*c2.se.se)
 
-b. For each state, estimate the standard error of the ATE?
-```{r}
-##texas
-t.obs.0 <- unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==0)[2])
-t.obs.1 <- unlist(subset(t,t$texas0_arkansas1==0 & t$term2year==1)[2])
+##Begin Problem 1 e.
 
-##calculate t.Var.hat.1 manually
-sum((t.obs.1 - ((sum(t.obs.1)/length(t.obs.1))))^2)/(length(t.obs.1)-1)
-##matches
-var(t.obs.1)
+#create new data frame only containing Study 2 data and removing NAs
+d.all <- d %>%
+  na.omit()
 
-t.se.hat <- sqrt((var(t.obs.0)/length(t.obs.0)) + (var(t.obs.1)/length(t.obs.1)))
-cat("Texas STE of ATE = ", t.se.hat)
+d.all <- mutate(d.all, cluster =factor(as.character(d.all$cluster)))
 
-##arkansas
-a.obs.0 <- unlist(subset(t,t$texas0_arkansas1==1 & t$term2year==0)[2])
-a.obs.1 <- unlist(subset(t,t$texas0_arkansas1==1 & t$term2year==1)[2])
+#run standard errors
+c3.se <- cl(lm(name_recall ~ treat_ad, d.all), d.all$cluster)
 
-a.se.hat <- sqrt((var(a.obs.0)/length(a.obs.0)) + (var(a.obs.1)/length(a.obs.1)))
-cat("Arkansas STE of ATE = ", a.se.hat)
+c3.se.ate <- c3.se[2,1]
+c3.se.pvalue <- c3.se[2,4]
+
+##End Problem 1 e. 
+
+
 
 ```
 
-c. Estimate overall of ATE for both states combined
-```{r}
-##
-t.pe.count<-length(t.obs.0)+length(t.obs.1)
-a.pe.count<-length(a.obs.0)+length(a.obs.1)
 
-pooled.ate <- a.ate*(a.pe.count/sum(t.pe.count,a.pe.count))+t.ate*(t.pe.count/sum(t.pe.count,a.pe.count))
-cat("Pooled ATE = ", pooled.ate) 
-```
-
-d. Explain why pooling the data leads to biased estimates of ATE?
-Quite simply, there are not the same number of observations in the treatment and control in each state
-
-e. Insert the estimated standard errors into equation 3.12 to estiamte standard error for overall ATE
-```{r}
-pooled.se <- sqrt(a.se.hat^2*(a.pe.count/sum(t.pe.count,a.pe.count))^2+a.se.hat^2*(t.pe.count/sum(t.pe.count,a.pe.count))^2)
-cat("Pooled SE for Overall ATE = ", pooled.se)
-```
-
-f. use randomization inference to test sharp null 
-```{r}
-
-numiter <- 10000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
-set.seed(1234567) # set random number seed (so that results can be replicated)
-
-##texas
-t.tauRI <- rep(NA,numiter)
-
-for (i in 1:numiter) {
-
-t.Zri <- sample(t.Z)
-t.tauRI[i] <- cov(t.Y,t.Zri)/t.denom
-
-if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
-}
-
-t.pvalue <- round(sum(t.tauRI >= t.ate)/numiter,3)
-t.pvalue
-
-##arkansas
-a.tauRI <- rep(NA,numiter)
-
-for (i in 1:numiter) {
-
-a.Zri <- sample(a.Z)
-a.tauRI[i] <- cov(a.Y,a.Zri)/a.denom
-
-if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
-}
-
-a.pvalue <- round(sum(a.tauRI >= a.ate)/numiter,3)
-a.pvalue
-```
-
-g. plotting histograms per instruction
-```{r}
-#texas treatment & control
-hist(t.obs.1)
-hist(t.obs.0)
-
-#arkansas treatment & control
-hist(a.obs.1)
-hist(a.obs.0)
-
-```
-
-## 3. FE, exercise 3.11
-
-a. 
-```{r}
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
-#clear variables
-rm( list = ls() )
-#read in tabular data
-data <- read.csv("GerberGreenBook_Chapter3_Table_3_3.csv",header = TRUE)
-#create shorthand reference
-c<-data
-##View(c)
-c$Y
-c$D
-cluster.ids<-c(1,1,2,2,3,3,4,4,5,5,6,6,7,7)
-cluster.ids
-all.clusters <- unique(cluster.ids)
-
-randomize.clustered <- function(){
-  treat.cluster.ids <- sample(all.clusters, length(all.clusters)*(3/7))
-  return(
-    as.numeric(cluster.ids %in% treat.cluster.ids)
-  )
-}
-randomize.clustered()
-
-cl1<-as.data.frame(cbind(c$Y,c$D,randomize.clustered()))
-names(cl1)[1] <- "Y"
-names(cl1)[2] <- "D"
-names(cl1)[3] <- "Cluster"
-
-cl1.0 <- unlist(subset(cl1,cl1$Cluster==0)[1])
-cl1.1 <- unlist(subset(cl1,cl1$Cluster==0)[2])
-
-se.ate <- sqrt((1/(7-1))*((4*var(cl1.0)/(7-4))+(3*var(cl1.1)/(4))+(2*cov(cl1.0,cl1.1))))
-cat("SE for Cluster Assingment 1 = ", se.ate)
-```
-
-a. 
-```{r}
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
-#clear variables
-rm( list = ls() )
-#read in tabular data
-data <- read.csv("GerberGreenBook_Chapter3_Table_3_3.csv",header = TRUE)
-#create shorthand reference
-c<-data
-##View(c)
-c$Y
-c$D
-cluster.ids<-c(1,2,3,4,5,6,7,7,6,5,4,3,2,1)
-cluster.ids
-all.clusters <- unique(cluster.ids)
-
-randomize.clustered <- function(){
-  treat.cluster.ids <- sample(all.clusters, length(all.clusters)*(3/7))
-  return(
-    as.numeric(cluster.ids %in% treat.cluster.ids)
-  )
-}
-randomize.clustered()
-
-cl1<-as.data.frame(cbind(c$Y,c$D,randomize.clustered()))
-names(cl1)[1] <- "Y"
-names(cl1)[2] <- "D"
-names(cl1)[3] <- "Cluster"
-
-cl1.0 <- unlist(subset(cl1,cl1$Cluster==0)[1])
-cl1.1 <- unlist(subset(cl1,cl1$Cluster==0)[2])
-
-se.ate <- sqrt((1/(7-1))*((4*var(cl1.0)/(7-4))+(3*var(cl1.1)/(4))+(2*cov(cl1.0,cl1.1))))
-cat("SE for Cluster Assingment 2 = ", se.ate)
-```
-
-c.
-They lead to different standard errors because there is variability in cluster level means across clusters. For large expeirments its crucial to look for ways to INCREASE the number of clusters to reduce this penalty.
-
-## 4. Question 4
+a. Using regression without clustered standard errors (that is, ignoring the clustered assignment), compute a confidence interval for the effect of the ad on candidate name recognition in Study 1 only (the dependent variable is “name_recall”).
 
 ```{r}
-#problem set up
-cws <-  1
-advertising <- .10
-users <- 1:1000000
-profit <- 100
-conversion <- .005
+ci
 ```
 
-a. By how much does the ad campaign need to increase the probability of purchase in order to be “worth it” and a positive ROI?
+
+b. What are the clusters in Broockman and Green’s study? Why might taking clustering into account increase the standard errors?
+
+In Study 1, 32,029 voters who were then assigned to 1,220 clusters across 18 age range, the 34 towns in the candidates’ district, and 2 genders. 
+
+Clustering can increase standard errors when cluster-level noise is large or the number of clusters are small (and noise is large)
+
+
+c. Now repeat part (a), but taking clustering into account. That is, compute a confidence interval for the effect of the ad on candidate name recognition in Study 1, but now correctly accounting for the clustered nature of the treatment assignment.
 
 ```{r}
-options("scipen"=100, "digits"=10)
-average.sales<- length(users)*conversion*profit
-average.sales
-cost<-length(users)*.10
-required.conversion <- (average.sales+cost+1)/(length(users)*profit)
-required.increase <- (required.conversion - conversion)/conversion*100
-required.increase
+c.se.ci
 ```
 
-b.
+d. Repeat part (c), but now for Study 2 only.
 
 ```{r}
-measuredeffect<-.002
-size<-length(users)/2
-treatment <- (length(users)/2)*(measuredeffect+conversion)
-control <- (length(users)/2)*(conversion)
-#prop.test(x=c(treatment,control),n=c(size,size))
-p<-(treatment+control)/(size+size)
-p
-se <- sqrt(p*(1-p)*((1/size)+(1/size)))*size
-se
-#confidence interval
-conf<- c(treatment-se*1.96, treatment+se*1.96)
-conf
+c2.se.ci
 ```
 
-c. Is this confidence interval precise enough that you would recommend running this experiment? Why or why not?
-Yes, not only is it statistically significant (per a prop.test) but the interval does not dip behind the average expectation 
-
-
-d. What would be the width of the confidence interval for this experiment if only 1% of users were placed in the control group?
+e. Repeat part (c), but using the entire sample from both studies. Do not take into account which study the data is from (more on this in a moment), but just pool the data and run one omnibus regression. What is the treatment effect estimate and associated p-value?
 
 ```{r}
-measuredeffect<-.002
-size.treatment<-length(users)*(.99)
-size.control<-length(users)*(.01)
-treatment <- (size.treatment)*(measuredeffect+conversion)
-control <- (size.control)*(conversion)
-#prop.test(x=c(treatment,control),n=c(size.treatment,size.control))
-p<-(treatment+control)/(size.treatment+size.control)
-p
-se <- sqrt(p*(1-p)*((1/size.treatment)+(1/size.control)))*size.treatment
-se
-#confidence interval
-conf<- c(treatment-se*1.96, treatment+se*1.96)
-conf
+cat(" ATE = ", c3.se.ate, " pvalue = ", c3.se.pvalue)
 ```
-
-
-## 5. Question 5
-
-```{r}
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Async Material and Sample Files/Chapter 3")
-#clear variables
-rm( list = ls() )
-#read in tabular data
-data <- read.csv("PS 2 data - list_luckingreiley_auction_data.csv",header = TRUE)
-#create shorthand reference
-r<-data
-
-# The means look different between groups
-by(r$bid, r$uniform_price_auction, mean, na.rm = TRUE)
-```
-
-a. Compute a 95% confidence interval for the difference between the treatment mean and the control mean, using
-analytic formulas for a two-sample t-test from your earlier statistics course. 
-
-```{r}
-#Check if means statistically different 
-# From the qqplot, it's not clear if loggdp is normally distributed, doesn't look like it
-qqnorm(r$bid)
-
-# The Shapiro test suggests that it's not
-shapiro.test(r$bid)
-
-# But we have a large sample size, so we can rely on 
-# the central limit theorem and use a regular t.test
-t.test(r$bid ~ r$uniform_price_auction, r, alternative = "two.sided")
-```
-
-b. In plain language, what does this confidence interval mean?
-The confidence interval (3.557140637 20.854624069) is the range of values that is likely to contain the population mean in this case.
-
-c.  Calculate the 95% confidence interval you get from the regression.
-
-```{r}
-library(car)
-#look at a quick scatter
-scatterplot(r$bid,r$uniform_price_auction)
-
-# Build regression model
-model = lm(bid~uniform_price_auction, data = r)
-summary(model)
-
-estimate <- as.vector(model$coefficients[1])
-standard.error <- abs(as.vector(model$coefficients[2]))
-
-lower.bound <- estimate - standard.error * 1.96
-upper.bound <- estimate + standard.error * 1.96
-
-cat("Conf Interval = ", lower.bound, upper.bound)
-
-```
-
-d. On to p-values. What p-value does the regression report?
-```{r}
-cat("p-value = ", summary(model)$coefficients[,4])
-```
-
-e. Now compute the same p-value using randomization inference.
-```{r}
-numiter <- 10000 # number of RI iterations. Use more for greater precision, fewer for greater speed.
-set.seed(12) # set random number seed (so that results can be replicated)
-
-# Compute RI Distribution
-
-Y <- r$bid
-Z <- r$uniform_price_auction
-
-denom <- var(Z)
-tau <- cov(Y,Z)/denom
-
-tauRI <- rep(NA,numiter)
-
-for (i in 1:numiter) {
-
-Zri <- sample(Z)
-tauRI[i] <- cov(Y,Zri)/denom
-
-if (i %% round(numiter/10) == 0) cat("Iteration",i,"of",numiter,"\n")
-}
-
-pvalue <- round(sum(tauRI >= abs(tau))/numiter,3)
-pvalue
-```
-
-
-f. Compute the same p-value again using analytic formulas for a two-sample t-test from your earlier statistics course. (Also see part (a).)
-
-```{r}
-# compare with traditional t-tests
-  t.test(Y~Z,var.equal=FALSE,alternative = "two.sided")
-```
-
-g. Compare the two p-values in parts (e) and (f). Are they much different? Why or why not? How might your answer to this question change if the sample size were different?
-
-The t-tests aren't very much different in real terms. They would converge as the sample size increased.
 
 
 

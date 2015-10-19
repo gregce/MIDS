@@ -2,7 +2,7 @@
 #Benefits of blocking
 group #recall the group variable
 randomize <- function() sample(c(rep(0,20),rep(1,20)))
-#on average groups are split evenly, but for any partiuclar
+#on average groups are split evenly, but fr any partiuclar
 randomization they often are not
 table(group, randomize())
 table(group, randomize())
