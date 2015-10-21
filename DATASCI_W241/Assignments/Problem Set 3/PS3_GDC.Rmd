@@ -293,6 +293,7 @@ p4b.ci <- summary(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
 ## use function to compute conf
 conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
 
+##Problem C & D & E code all below
 
 ```
 
@@ -323,3 +324,17 @@ It doesn't vary much because since street was used in the randomization procedur
 
 
 e. Perhaps having a cell phone helps explain the level of recycling behavior. Instead of “has cell phone,” we find it easier to interpret the coefficient if we define the variable “ no cell phone.”  Give the R command to define this new variable, which equals one minus the “has cell phone” variable in the authors’ data set.  Use “no cell phone” instead of “has cell phone” in subsequent regressions with this dataset.
+
+```{r}
+d4 <- mutate(d4, nocell= factor(as.character(ifelse(havecell==1,0,ifelse(havecell==0,1,FALSE)))))
+```
+
+f. Now add “no cell phone” as a covariate to the previous regression.  Provide a 95% confidence interval for the treatment effect.  Explain why this confidence interval does not differ much from the previous one.
+
+The reason adding no cell phone as a covariate doesn't cause the confidence interval to differ much is that it (having or not having a cell phone) is completely independent of the bin experiment.
+
+```{r}
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)) + nocell,d4))
+```
+
+f. Now add “no cell phone” as a covariate to the previous regression.  Provide a 95% confidence interval for the treatment effect.  Explain why this confidence interval does not differ much from the previous one.
