@@ -10,6 +10,7 @@ output: pdf_document
 ```{r}
 library(dplyr)
 library(stargazer)
+library(memisc)
 
 setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Assignments/Problem Set 3/")
 #clear variables
@@ -96,11 +97,27 @@ d.all <- mutate(d.all, cluster =factor(as.character(d.all$cluster)))
 #run standard errors
 c3.se <- cl(lm(name_recall ~ treat_ad, d.all), d.all$cluster)
 
+##End Problem 1 e. 
 c3.se.ate <- c3.se[2,1]
 c3.se.pvalue <- c3.se[2,4]
 
-##End Problem 1 e. 
 
+##Begin Problem 1 f.
+
+d.all <- mutate(d.all, dummy= factor(as.character(ifelse(studyno==1,0,ifelse(studyno==2,1,FALSE)))))
+#filter(d.all, dummy ==5)
+
+#d.all <- mutate(d.all, cluster =factor(as.character(d.all$cluster)))
+
+c4.se <- cl(lm(name_recall ~ treat_ad+dummy, d.all), d.all$cluster)
+
+c4.se
+
+##End Problem 1 e. 
+c4.se.ate <- c4.se[2,1]
+c4.se.pvalue <- c4.se[2,4]
+
+##glimpse(d.all)
 
 
 ```
@@ -139,4 +156,170 @@ cat(" ATE = ", c3.se.ate, " pvalue = ", c3.se.pvalue)
 ```
 
 
+f. Now, repeat part (e) but include a dummy variable (a 0/1 binary variable) for whether the data are from Study 1 or Study 2. What is the treatment effect estimate and associated p-value?
 
+
+```{r}
+cat(" ATE = ", c4.se.ate, " pvalue = ", c4.se.pvalue)
+```
+
+G. Why did the results from parts (e) and (f) differ? Which result is biased, and why? (Hint: see pages 75-76 of Gerber and Green, with more detailed discussion optionally available on pages 116-121.)
+
+They differ because we pooled the results of the study together. The pooled result (question e) is biased because the probability of being assigned to either study 1 or 2 is not exactly equal (i.e it's different).
+
+
+h. Skim this Facebook case study and consider two claims they make reprinted below. Why might their results differ from Broockman and Green’s? Please be specific and provide examples.
+
+In the facebook case study they use geographic location and user targeting. Additionally it is not clear that they actually employed any randomization. For example, they specifically state: "The agency relied on Facebook’s Location Targeting to reach people in two of the most populated counties in Florida, Dade and Broward, which have a combined population of 4.2 million." Accordingly, it's very likely their effect (19% difference in voting and 17% in no voting) claims are biased because its very likely that people in the ad-targeted counties were likely to vote a certain way regardless of the facebook ad saturation. This is very different than the Broockman and Green study which employed block and clustered randomization which allowed them to measure an unbiased treamtment effect.The facebook case study appears to be making a dubious causal claim based on their methodology or lackthereof. 
+
+
+## Problem 2.
+
+a. In Column 3 of Table 4A, what is the estimated ATE of providing a recycling bin on the average weight of recyclables turned in per household per week, during the six-week treatment period?  Provide a 95% confidence interval.
+
+
+```{r}
+p2a.ate <- 0.187
+p2a.se <- .032
+
+cat(" ATE = ", p2a.ate, " conf interval = ", c(p2a.ate - 1.96 * p2a.se, p2a.ate + 1.96*p2a.se))
+```
+
+
+
+b. In Column 3 of Table 4A, what is the estimated ATE of sending a text message reminder on the average weight of recyclables turned in per household per week?  Provide a 95% confidence interval.
+
+
+```{r}
+p3b.ate <- -0.024
+p3b.se <- .039
+
+cat(" ATE = ", p2b.ate, " conf interval = ", c(p2b.ate - 1.96 * p2b.se, p2b.ate + 1.96*p2b.se))
+```
+  
+
+c. Which outcome measures in Table 4A show statistically significant effects (at the 5% level) of providing a recycling bin?
+
+1. Percentage of visits turned in bag 
+2. Avg. no of bins turned in per week
+3. Avg. weight of recyclables turned in per week
+4. Avg. market value of recyclables given per week
+
+d. Which outcome measures in Table 4A show statistically significant effects (at the 5% level) of sending text messages?
+
+*None*
+
+e. Suppose that, during the two weeks before treatment, household A turns in 2kg per week more recyclables than household B does, and suppose that both households are otherwise identical (including being in the same treatment group).  From the model, how much more recycling do we predict household A to have than household B, per week, during the six weeks of treatment?   Provide 
+
+```{r}
+
+```
+
+f. Suppose that the variable “percentage of visits turned in bag, baseline” had been left out of the regression reported in Column 1.  What would you expect to happen to the results on providing a recycling bin?  Would you expect an increase or decrease in the estimated ATE?  Would you expect an increase or decrease in the standard error?  Explain your reasoning.
+
+Using a baseline allows us to compute a difference in difference. Without the baseline, I would expect the ate to decrease. We get additional power by using percentage of visits turn in bag, baseline as a covariate to predict the results on providing a recycling bin. We get additional power with the baseline so removing it would actually increase standard error.
+
+g. In column 1 of Table 4A, would you say the variable “has cell phone” is a bad control?  Explain your reasoning.
+
+No it's not. Because we're trying to measure recycling participation intensity, I don't think cell phone ownership is an outcome of recycling participation. It could have been argued in the past cell phone ownership (when it was a luxury) would be a good measure of socio economic status which thus creates a higher likelihood of being environmentally conscious but in today's day and age, cell phone usage is ubiquitous across all levels of SES.
+
+
+## Problem 3.
+
+a. What is the full experimental design for this experiment?  Tell us the dimensions, such as 2x2x3.  (Hint: the full results appear in Panel 4B.)
+
+The full experimental design is:
+You receive a bin, a bin with a stick or no bin and 
+Independent of bin randomization, If you have a phone, you receive a generic SMS, a personalized SMS or no SMS
+Thus it is a 3 x 3 design. 
+
+b. In the results of Table 4B, describe the baseline category. That is, in English, how would you describe the attributes of the group of people for whom all dummy variables are equal to zero?
+
+
+
+
+c. In column (1) of Table 4B, interpret the magnitude of the coefficient on “bin without sticker.”  What does it mean?
+
+Households that received a bin without a sticker were 3.5 percentage points more likely to turn in recyclables compared to those who did not receive a bin.
+
+d. In column (1) of Table 4B, which seems to have a stronger treatment effect, the recycling bin with message sticker, or the recycling bin without sticker?  How large is the magnitude of the estimated difference?
+
+Households receiving a bin with a sticker were 4.5 percentage points more likely to turn in recyclables compared to households receiving a bin without a sticker being 3.5 percetage points more likely. Thus those receiving a stickered bin seem to have a stronger treatment effect. The magintude of the difference is 1 % with results in a 1.2% over the sample mean of 78.
+
+e. Is this difference you just described statistically significant?  Explain which piece of information in the table allows you to answer this question.
+
+No the difference is not statistically significant. The confidence intervals overlap and the standard errors for each coefficient allow you to answer this question. 
+
+
+d. Notice that Table 4C is described as results from “fully saturated” models.  What does this mean?  Looking at the list of variables in the table, explain in what sense the model is “saturated.”
+
+In brief, a fully saturated model is one where the right hand side of the equaiton is as flexible as possible. What this means is that there is a dummy variable set up for each condition with the intent to try and explain as much variance as possible. 
+
+
+## Problem 4.
+
+
+```{r}
+library(foreign)
+
+d4 <- read.dta("karlan_data_subset_for_class.dta")
+
+## define a function to compute 95% confidence intervals
+conf.ints <- function(model){
+  mod <- summary(model)
+  ate<-mod$coefficients[2,1]
+  se<-mod$coefficients[2,2]
+	return(c(ate-1.96 *se, ate+1.96*se))
+}
+
+##Begin Problem 4 A##
+
+
+#regress bin against avg bins
+p4a.mod <- summary(lm(avg_bins_treat ~ bin,d4))
+
+#pull out data for confidence interval creation
+
+p4a.ate <- p4a.mod$coefficients[2,1]
+p4a.se <- p4a.mod$coefficients[2,2]
+
+p4a.ci <- c(p4a.ate -1.96 * p4a.se, p4a.ate+1.96* p4a.se)
+
+##Begin Problem 4 B##
+
+#regress bin against avg bins using pre-treatment y as covariate
+p4b.ci <- summary(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
+
+## use function to compute conf
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
+
+
+```
+
+
+a. For simplicity, let’s start by measuring the effect of providing a recycling bin, ignoring the SMS message treatment (and ignoring whether there was a sticker on the bin or not).  Run a regression of Y on only the bin treatment dummy, so you estimate a simple difference in means.  Provide a 95% confidence interval for the treatment effect.
+
+```{r}
+conf.ints(lm(avg_bins_treat ~ bin,d4))
+```
+
+b. Now add the pre-treatment value of Y as a covariate.  Provide a 95% confidence interval for the treatment effect. Explain how and why this confidence interval differs from the previous one.
+
+The confidence interval get's smaller because we're able to compute a difference in difference using this baseline value. It increases the power and thus decreases the standard error and the confidence intervals.
+
+```{r}
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
+```
+
+c. Now add the street fixed effects.  (You’ll need to use the R command factor().) Provide a 95% confidence interval for the treatment effect.  
+
+```{r}
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)),d4))
+```
+
+d. Recall that the authors described their experiment as “stratified at the street level,” which is a synonym for blocking by street.  Explain why the confidence interval with fixed effects does not differ much from the previous one.
+
+It doesn't vary much because since street was used in the randomization procedure, it's already inherent in the results and so adding fixed effects as a covariate doesn't increase power much. 
+
+
+e. Perhaps having a cell phone helps explain the level of recycling behavior. Instead of “has cell phone,” we find it easier to interpret the coefficient if we define the variable “ no cell phone.”  Give the R command to define this new variable, which equals one minus the “has cell phone” variable in the authors’ data set.  Use “no cell phone” instead of “has cell phone” in subsequent regressions with this dataset.
