@@ -1,13 +1,13 @@
 ---
 title: "Problem Set #3 - DATASCI W241"
 author: "Greg Ceccarelli"
-date: "October 30, 2015"
+date: "October 21, 2015"
 output: pdf_document
 ---
 
 ## Problem 1.
 
-```{r}
+```{r, message=F, warning=F}
 library(dplyr)
 library(stargazer)
 library(memisc)
@@ -191,8 +191,8 @@ b. In Column 3 of Table 4A, what is the estimated ATE of sending a text message 
 
 
 ```{r}
-p3b.ate <- -0.024
-p3b.se <- .039
+p2b.ate <- -0.024
+p2b.se <- .039
 
 cat(" ATE = ", p2b.ate, " conf interval = ", c(p2b.ate - 1.96 * p2b.se, p2b.ate + 1.96*p2b.se))
 ```
@@ -209,10 +209,10 @@ d. Which outcome measures in Table 4A show statistically significant effects (at
 
 *None*
 
-e. Suppose that, during the two weeks before treatment, household A turns in 2kg per week more recyclables than household B does, and suppose that both households are otherwise identical (including being in the same treatment group).  From the model, how much more recycling do we predict household A to have than household B, per week, during the six weeks of treatment?   Provide 
+e. Suppose that, during the two weeks before treatment, household A turns in 2kg per week more recyclables than household B does, and suppose that both households are otherwise identical (including being in the same treatment group).  From the model, how much more recycling do we predict household A to have than household B, per week, during the six weeks of treatment?   Provide a point estimate
 
 ```{r}
-
+cat("Over six weeks there would be", .187*2*6, "more KGs of recycling turned in")
 ```
 
 f. Suppose that the variable “percentage of visits turned in bag, baseline” had been left out of the regression reported in Column 1.  What would you expect to happen to the results on providing a recycling bin?  Would you expect an increase or decrease in the estimated ATE?  Would you expect an increase or decrease in the standard error?  Explain your reasoning.
@@ -235,8 +235,7 @@ Thus it is a 3 x 3 design.
 
 b. In the results of Table 4B, describe the baseline category. That is, in English, how would you describe the attributes of the group of people for whom all dummy variables are equal to zero?
 
-
-
+The baseline measure provides a pretest measurement taken prior to bin and SMS distribution. Where dummy values are equal to zero indicates that the household did not receive the treatment.
 
 c. In column (1) of Table 4B, interpret the magnitude of the coefficient on “bin without sticker.”  What does it mean?
 
@@ -250,7 +249,6 @@ e. Is this difference you just described statistically significant?  Explain whi
 
 No the difference is not statistically significant. The confidence intervals overlap and the standard errors for each coefficient allow you to answer this question. 
 
-
 d. Notice that Table 4C is described as results from “fully saturated” models.  What does this mean?  Looking at the list of variables in the table, explain in what sense the model is “saturated.”
 
 In brief, a fully saturated model is one where the right hand side of the equaiton is as flexible as possible. What this means is that there is a dummy variable set up for each condition with the intent to try and explain as much variance as possible. 
@@ -259,16 +257,16 @@ In brief, a fully saturated model is one where the right hand side of the equait
 ## Problem 4.
 
 
-```{r}
+```{r, message=F, warning=F}
 library(foreign)
 
 d4 <- read.dta("karlan_data_subset_for_class.dta")
 
-## define a function to compute 95% confidence intervals
-conf.ints <- function(model){
+## define a function to compute 95% confidence intervals more easily (could also just grab the conf value from the summary but this is more fun)
+conf.ints <- function(model,effect){
   mod <- summary(model)
-  ate<-mod$coefficients[2,1]
-  se<-mod$coefficients[2,2]
+  ate<-mod$coefficients[effect,1]
+  se<-mod$coefficients[effect,2]
 	return(c(ate-1.96 *se, ate+1.96*se))
 }
 
@@ -291,9 +289,9 @@ p4a.ci <- c(p4a.ate -1.96 * p4a.se, p4a.ate+1.96* p4a.se)
 p4b.ci <- summary(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
 
 ## use function to compute conf
-conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4),2)
 
-##Problem C & D & E code all below
+##Problem C - H code all below
 
 ```
 
@@ -301,7 +299,7 @@ conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
 a. For simplicity, let’s start by measuring the effect of providing a recycling bin, ignoring the SMS message treatment (and ignoring whether there was a sticker on the bin or not).  Run a regression of Y on only the bin treatment dummy, so you estimate a simple difference in means.  Provide a 95% confidence interval for the treatment effect.
 
 ```{r}
-conf.ints(lm(avg_bins_treat ~ bin,d4))
+conf.ints(lm(avg_bins_treat ~ bin,d4),2)
 ```
 
 b. Now add the pre-treatment value of Y as a covariate.  Provide a 95% confidence interval for the treatment effect. Explain how and why this confidence interval differs from the previous one.
@@ -309,19 +307,18 @@ b. Now add the pre-treatment value of Y as a covariate.  Provide a 95% confidenc
 The confidence interval get's smaller because we're able to compute a difference in difference using this baseline value. It increases the power and thus decreases the standard error and the confidence intervals.
 
 ```{r}
-conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4))
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat,d4),2)
 ```
 
 c. Now add the street fixed effects.  (You’ll need to use the R command factor().) Provide a 95% confidence interval for the treatment effect.  
 
 ```{r}
-conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)),d4))
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)),d4),2)
 ```
 
 d. Recall that the authors described their experiment as “stratified at the street level,” which is a synonym for blocking by street.  Explain why the confidence interval with fixed effects does not differ much from the previous one.
 
 It doesn't vary much because since street was used in the randomization procedure, it's already inherent in the results and so adding fixed effects as a covariate doesn't increase power much. 
-
 
 e. Perhaps having a cell phone helps explain the level of recycling behavior. Instead of “has cell phone,” we find it easier to interpret the coefficient if we define the variable “ no cell phone.”  Give the R command to define this new variable, which equals one minus the “has cell phone” variable in the authors’ data set.  Use “no cell phone” instead of “has cell phone” in subsequent regressions with this dataset.
 
@@ -334,7 +331,92 @@ f. Now add “no cell phone” as a covariate to the previous regression.  Provi
 The reason adding no cell phone as a covariate doesn't cause the confidence interval to differ much is that it (having or not having a cell phone) is completely independent of the bin experiment.
 
 ```{r}
-conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)) + nocell,d4))
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)) + nocell,d4),2)
 ```
 
-f. Now add “no cell phone” as a covariate to the previous regression.  Provide a 95% confidence interval for the treatment effect.  Explain why this confidence interval does not differ much from the previous one.
+g. Now let’s add in the SMS treatment.  Re-run the previous regression with “any SMS” included.  You should get the same results as in Table 4A.  Provide a 95% confidence interval for the treatment effect of the recycling bin.  Explain why this confidence interval does not differ much from the previous one.
+
+It doesn't differ much because SMS messages ignores interaction effects (it's being treated independently).
+
+```{r}
+conf.ints(lm(avg_bins_treat ~ bin + base_avg_bins_treat + factor(as.character(street)) + nocell + sms ,d4),2)
+```
+
+h. Now reproduce the results of column 2 in Table 4B, estimating separate treatment effects for the two types of SMS treatments and the two types of recycling-bin treatments.  Provide a 95% confidence interval for the effect of the unadorned recycling bin.  Explain how your answer differs from that in part (g), and explain why you think it differs.
+
+It differs because instead of pooling the variables (bin and sms) we've broken out each into a subtreatment. We're able to observe the lesser effect the unaddorned bin has on behavior.
+
+```{r}
+##reproducing column 2 in Table 4B
+summary(lm(avg_bins_treat ~ bin_s + bin_g + sms_p + sms_g + nocell + base_avg_bins_treat +factor(as.character(street)),d4))
+
+conf.ints(lm(avg_bins_treat ~ bin_s + bin_g + sms_p + sms_g + nocell + base_avg_bins_treat +factor(as.character(street)),d4),3)
+```
+
+
+## Problem 5.
+
+
+```{r}
+##read in data
+d5 <- read.csv("ebola_rct2.csv",header = T)
+```
+
+a. Without using any covariates, answer this question with regression: What is the estimated effect of ZMapp (with standard error in parentheses) on whether someone was vomiting on day 14? What is the p-value associated with this estimate?
+
+```{r}
+d5a <- summary(lm(vomiting_day14 ~ treat_zmapp,d5))
+cat(" ATE = ", d5a$coefficients[2,1], " se = ", d5a$coefficients[2,2], " p-value = ", d5a$coefficients[2,4])
+conf.ints(lm(vomiting_day14 ~ treat_zmapp,d5),2)
+```
+
+b. Add covariates for vomiting on day 0 and patient temperature on day 0 to the regression from part (a) and report the ATE (with standard error). Also report the p-value.
+
+```{r}
+d5b <- summary(lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0,d5))
+cat(" ATE = ", d5b$coefficients[2,1], " se = ", d5b$coefficients[2,2], " p-value = ", d5b$coefficients[2,4])
+conf.ints(lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0,d5),2)
+```
+
+c. Do you prefer the estimate of the ATE reported in part (a) or part (b)? Why?
+
+I like the estimate of ATE in part B better because we're able to add a baseline that reduces our standard error and improves our confidence interval
+
+d. The regression from part (b) suggests that temperature is highly predictive of vomiting. Also include temperature on day 14 as a covariate in the regression from part (b) and report the ATE, the standard error, and the p-value.
+
+```{r}
+d5d <- summary(lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + temperature_day14,d5))
+cat(" ATE = ", d5d$coefficients[2,1], " se = ", d5d$coefficients[2,2], " p-value = ", d5b$coefficients[2,4])
+conf.ints(lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + temperature_day14, d5),2)
+stargazer(lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0,d5), lm(vomiting_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + temperature_day14,d5), type = "text")
+```
+
+e. Do you prefer the estimate of the ATE reported in part (b) or part (d)? Why?
+
+I prefer the estimate of ATE in part B rather than part D. Adding temperature_day14 is a bad control because it is actually an outcome of the treatment.
+
+f. Now let's switch from the outcome of vomiting to the outcome of temperature, and use the same regression covariates as in part (b). Test the hypothesis that ZMapp is especially likely to reduce men’s temperatures, as compared to women’s, and describe how you did so. What do the results suggest?
+
+The results suggest that male's actually experience 2.17 degrees higher temperature than women when being treated with zmapp.
+
+
+```{r}
+summary(lm(temperature_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + male,d5))
+d5f <- summary(lm(temperature_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + male,d5))
+cat(" ATE = ", d5f$coefficients[2,1], " se = ", d5f$coefficients[2,2], " p-value = ", d5f$coefficients[2,4])
+conf.ints(lm(temperature_day14 ~ treat_zmapp + vomiting_day0 + temperature_day0 + male,d5),2)
+```
+
+
+g. Suppose that you had not run the regression in part (f). Instead, you speak with a colleague to learn about heterogenous treatment effects. This colleague has access to a non-anonymized version of the same dataset and reports that he had looked at heterogenous effects of the ZMapp treatment by each of 10,000 different covariates to examine whether each predicted the effectiveness of ZMapp on each of 2,000 different indicators of health, for 20,000,000 different regressions in total ... etc
+
+I think it is very unlikely based on the above. Specifically, the analysis of subgroups (men / women) conflates the effectiveness of the drug with the genders of people who receive them. A direct experimental test would be required rather than treatment by covariate interaction analysis to distinguish whether this is really the case.
+
+f. Now, imagine that what described in part (g) did not happen, but that you had tested this heterogeneous treatment effect, and only this heterogeneous treatment effect, of your own accord. Would you be more or less inclined to believe that the heterogeneous treatment effect really exists? Why?
+
+If I had this theory and had conducted a direct experiment to test gender specifically (and not after the fact) then and only then could I be inclined to believe that the heterogenous treatment effect really existed (i.e. that men are more responsive to the drug than women, for example).
+
+i. Another colleague proposes that being of African descent causes one to be more likely to get Ebola. He asks you what ideal experiment would answer this question. What would you tell him?  (Hint: refer to Chapter 1 of Mostly Harmless Econometrics.)
+
+That's a fundamentally unanswerable question because you can't randomly manipulate people's races in isolation and you would need to do so in order to construct an examperiment to test this question. 
+
