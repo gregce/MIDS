@@ -42,7 +42,7 @@ In what ways would the estimated CACE be informative or misleading?
 
 Which population is more relevant to study for future decisionmaking: the set of Compliers, or the set of Compliers plus Never-Takers? Why?
 
-[To Answer]
+It really depends on what you're trying to estimate, but since we have negative CACE and we're probably trying to understand the effect of an intervention (that we presumably hypothesize has a negative effect), if we used ATE, we'd underestimate the effect (think it was positive when really its negative) if we considered Compliers + Never takers. 
 
 ## FE exercise 5.6.
 
@@ -140,7 +140,7 @@ c.se.ci <- c(c.se.ate -1.96 *c.se.se, c.se.ate+1.96*c.se.se)
 
 ```
 
-The p-value is highly statistically significant and I'd be quite confident rejecting the sharp null that the difference between each observation is zero. Also, a look at the 95% confidence interval (that doens't cross zero), would indicate that there is a good chance of an intent to treat effect.
+The p-value is highly statistically significant and I'd be quite confident rejecting the sharpe null that the difference between each observation is zero. Also, a look at the 95% confidence interval (that doens't cross zero), would indicate that there is a good chance of an intent to treat effect.
 
 c. Assume that the leaflet had no effect on turnout. Estimate the CACE.
 
@@ -197,7 +197,13 @@ d. Estimate the CACE of receiving treatments using two different methods.
 
 ## Question 5
 
+a. In the advertising example of Lewis and Reiley (2014), assume some treatment-group members are friends with control-group members.
 
+b. Consider the police displacement example from the bulleted list in the introduction to FE 8, where we are estimating the effects of enforcement on crime.
+
+c. Suppose employees work harder when you experimentally give them compensation that is more generous than they expected, that people feel resentful (and therefore work less hard) when they learn that their compensation is less than others, and that some treatment-group members talk to control group members.
+
+d. When Olken (2007) randomly audits local Indonesian governments for evidence of corruption, suppose control-group governments learn that treatment-group governments are being randomly audited and assume they are likely to get audited too
 
 ## Exercise 8.2
 
@@ -206,20 +212,82 @@ National Surveys indicate that college roommates tend to have correlated weights
 
 
 
-
 ## Exercise 8.10
 
-a. Suppose you were seeking to estimate the ATE of running on Tetris. Explain the assumtions needed.
+a. Suppose you were seeking to estimate the ATE of running on Tetris. Explain the assumptions needed.
+
 
 
 b. Estimate the effect of running on Tetris score. Use randomization inference to test the sharp null hypothesis
 
+```{r, message=F, warning=F}
+library(foreign)
+
+d8.10 <- read.dta("Hough_WorkingPaper_2010.dta.dta")
+
+summary(d8.10)
+
+#remove NAs
+d8.10.nona <- d8.10 %>%
+                 na.omit
+
+d8.10.nona %>%
+  group_by(run) %>%
+  summarise(mean(tetris))
+
+mod <- summary(lm(tetris ~ run,d8.10.nona))
+mod
+ate <- mod$coefficients[2,1]
+
+
+##  grab the standard error
+se <- mod$coefficients[2,2]
+
+ci <- c(ate-1.96 *se, ate+1.96*se)
+
+cat(" CACE = ", mod$coefficients[2,1]) 
+
+```
+
+
+
 c. One way to lend credibility to within-subjects results is to verify the no-anticipation assumption. Use the variable Run to predict the tetris score on the preceding day.
+
+```{r, message=F, warning=F}
+d8.10.nona_lag <- d8.10.nona
+
+#created lagged variable 
+d8.10.nona_lag$tetris_lag <- lag(d8.10.nona$tetris) 
+
+#remove nas from dataset
+d8.10.nona_lag<-d8.10.nona_lag %>%
+  na.omit
+
+#compare means
+d8.10.nona %>%
+  group_by(run) %>%
+  summarise(mean(tetris))
+
+d8.10.nona_lag %>%
+  na.omit %>%
+  group_by(run) %>%
+  summarise(mean(tetris_lag))
+
+#predict effect
+mod <- summary(lm(tetris_lag ~ run,d8.10.nona_lag))
+mod
+
+
+```
+The  effect is very small and seems to confirm the no-anticipation assumption
+
 
 d. If Tetris responds to exercise, one might suppose that energy levels and GRE scores would as well. Are these hypothesis borne out by the data?
 
 
-e.
+
+
+e. Given that, would you expect randomization inference to give you a better answer than the regression answer you just obtained in (b)?  Which number(s) do you expect to be different in regression than in randomization inference?  What is the direction of the bias?  
 
 
 
