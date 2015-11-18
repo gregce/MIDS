@@ -1,0 +1,227 @@
+---
+title: "Problem Set #4 - DATASCI W241"
+author: "Greg Ceccarelli"
+date: "November 15, 2015"
+output: pdf_document
+---
+
+## FE exercise 5.2.
+
+```{r, message=F, warning=F}
+##clear global env
+rm( list = ls() )
+
+library(dplyr)
+library(stargazer)
+library(memisc)
+library(data.table)
+
+set.seed(123)
+
+## Hypothetical Schedule
+e_52_hyp_schedule <- data.table(D_Z_1=c(1,0,1,0,1,0),
+                                Y_D_1=c(8,10,8,10,10,8),
+                                Y_D_0=c(9,8,9,7,10,2))
+
+## ATE - Positive in my test example
+ATE <- e_52_hyp_schedule %>%
+  summarise(t=sum(Y_D_1-Y_D_0)/n())
+ATE #print positive ATE
+
+##CACE - Negative in my test example
+CACE<- e_52_hyp_schedule %>%
+  group_by(D_Z_1) %>%
+  summarise(t=sum(Y_D_1-Y_D_0)/n())
+
+as.data.frame(CACE)[1,2] #print negative CACE
+```
+
+In what ways would the estimated CACE be informative or misleading?
+
+[To Answer]
+
+Which population is more relevant to study for future decisionmaking: the set of Compliers, or the set of Compliers plus Never-Takers? Why?
+
+[To Answer]
+
+## FE exercise 5.6.
+
+```{r, message=F, warning=F}
+##clear global env
+##rm( list = ls() )
+
+## ITT_D What proportion of those ASSIGNED were actually treated?
+
+Assigned = 1000
+Treatment_Lie = 500
+Treatment_Real = 250
+Treatment_Voted = 400
+Control = 2000
+Control_Voted = 700
+```
+
+a. If you believe that 500 subjects were actually contacted, what would your esimate of CACE be?
+```{r, message=F, warning=F}
+#What proportion of those ASSIGNED were actually treated? 
+ITT_d = Treatment_Lie/Assigned
+#Intent to Treat Effect
+ITT = (Treatment_Voted/Assigned) - (Control_Voted/Control)
+CACE = ITT/ITT_d
+CACE
+```
+
+b. Suppose you learned that only 250 subjects were actually treated. What would your estimate of CACE be?
+```{r, message=F, warning=F}
+#What proportion of those ASSIGNED were actually treated? 
+ITT_d = Treatment_Real/Assigned
+#Intent to Treat Effect
+ITT = (Treatment_Voted/Assigned) - (Control_Voted/Control)
+CACE = ITT/ITT_d
+CACE
+```
+
+c. Do the canvassers' exaggerated reports make their efforts seem more or less effective? 
+In terms of Complier's average causal effect (CACE), the exaggerated report of 500 contacts actually makes the CACE smaller. This is because the CACE ratio increases as ITT_d decreases.
+
+## FE exercise 5.10.
+
+```{r, message=F, warning=F}
+library(foreign)
+#setwd
+setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Assignments/Problem Set 4/")
+d5.10 <- read.dta("Guan_Green_CPS_2006.dta.dta")
+
+summary(d5.10
+```
+
+a. Using the dataset, estimate ITT
+
+```{r, message=F, warning=F}
+
+itt <- as.vector(d5.10 %>%
+                 na.omit %>%
+  group_by(treat2) %>%
+  summarise(mean(turnout)))
+
+#ITT
+as.data.frame(itt)[2,2] - as.data.frame(itt)[1,2]
+
+```
+
+b. Use regression to test the sharp null that ITT is zero for all observations, taking into account the fact that random assignment was clustered by dorm room. Interpret results.
+
+```{r, message=F, warning=F}
+#initialize clustered standard errors function
+cl <- function(fm, cluster){
+  require(sandwich, quietly = TRUE)
+  require(lmtest, quietly = TRUE)
+	M <- length(unique(cluster))
+	N <- length(cluster)
+	K <- fm$rank
+	dfc <- (M/(M-1))*((N-1)/(N-K))
+	uj <- apply(estfun(fm),2, function(x) tapply(x, cluster, sum));
+	vcovCL <- dfc*sandwich(fm, meat=crossprod(uj)/N)
+	coeftest(fm, vcovCL)
+}
+
+#make sure to set cluster variable as a factor
+d5.10$cluster <- factor(as.character(d5.10$dormid))
+
+#remove NAs
+d5.10.nona <- d5.10 %>%
+                 na.omit
+#run standard errors
+c.se <- cl(lm(turnout ~ treat2,d5.10.nona), d5.10.nona$cluster)
+
+c.se.ate <- c.se[2,1]
+c.se.se <- c.se[2,2]
+ 
+c.se.ci <- c(c.se.ate -1.96 *c.se.se, c.se.ate+1.96*c.se.se)
+
+```
+
+The p-value is highly statistically significant and I'd be quite confident rejecting the sharp null that the difference between each observation is zero. Also, a look at the 95% confidence interval (that doens't cross zero), would indicate that there is a good chance of an intent to treat effect.
+
+c. Assume that the leaflet had no effect on turnout. Estimate the CACE.
+
+```{r, message=F, warning=F}
+library("AER")
+cace_fit <- ivreg(turnout ~ treat2,~contact, data = d5.10)
+mod <- summary(cace_fit)
+
+#CACE
+cat(" CACE = ", mod$coefficients[2,1]) 
+```
+
+d. Assume the leaflet raised the probability of voting by 1 percentage point among the compliers and never takers.
+
+```{r, message=F, warning=F}
+Treatment = 2380
+Assigned = 2688
+Treatment_Voted = 2152
+Control_Voted = 892
+Control = 1334
+
+ITT_d = Treatment/Assigned
+#Intent to Treat Effect
+ITT = ((Treatment_Voted/Assigned)+.01) - ((Control_Voted/Control))
+
+CACE = ITT/ITT_d
+CACE
+```
+
+E. Given this assumption, estimate CACE of canvassing
+
+```{r, message=F, warning=F}
+CACE = ITT/ITT_d
+CACE
+```
+
+f. Raised turnout among never takers by 3%, given this assumption, estimate CACE of canvassing
+
+```{r, message=F, warning=F}
+
+```
+
+
+## Exercise 5.11
+
+a. Estimate the proportion of Compliers based on subjects' response to treatment & placebo.
+
+b. Do the data suggest that Never-Takers in the treatment and placebo groups havet the same rate of turnout?
+
+c. Estimate CACE of receiving the placebo. Is this estimate consistent with the assumption that the placebo has no effect on turnout?
+
+d. Estimate the CACE of receiving treatments using two different methods.
+
+
+## Question 5
+
+
+
+## Exercise 8.2
+
+National Surveys indicate that college roommates tend to have correlated weights. The more one roommate weighs at the end of the freshman year, the more the other freshman roomate weights. On the other hand, researchers studying housing arrangements in which roommates are randomly paired together find no correlation between two roommates' weights at the end of their freshman year. Explain how these two facts can be reconciled.
+
+
+
+
+
+## Exercise 8.10
+
+a. Suppose you were seeking to estimate the ATE of running on Tetris. Explain the assumtions needed.
+
+
+b. Estimate the effect of running on Tetris score. Use randomization inference to test the sharp null hypothesis
+
+c. One way to lend credibility to within-subjects results is to verify the no-anticipation assumption. Use the variable Run to predict the tetris score on the preceding day.
+
+d. If Tetris responds to exercise, one might suppose that energy levels and GRE scores would as well. Are these hypothesis borne out by the data?
+
+
+e.
+
+
+
+
+
