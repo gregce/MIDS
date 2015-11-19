@@ -37,12 +37,11 @@ as.data.frame(CACE)[1,2] #print negative CACE
 ```
 
 In what ways would the estimated CACE be informative or misleading?
-
-[To Answer]
+_If the subgroup of interest that takes the treatment (the compliers) matters for your research objectives, then CACE can be informative. If you're trying to draw broder generalizations about ATE among Never-Takers, the results of the experiment would not provide this -- CACE is a narrow measure. Additionally, if there is extremely low rates of compliance, CACE may be a misleading measure given very high error terms._
 
 Which population is more relevant to study for future decisionmaking: the set of Compliers, or the set of Compliers plus Never-Takers? Why?
 
-It really depends on what you're trying to estimate, but since we have negative CACE and we're probably trying to understand the effect of an intervention (that we presumably hypothesize has a negative effect), if we used ATE, we'd underestimate the effect (think it was positive when really its negative) if we considered Compliers + Never takers. 
+_It really depends on what you're trying to estimate, but since we have negative CACE and we're probably trying to understand the effect of an intervention (that we presumably hypothesize has a negative effect), if we used ATE, we'd underestimate the effect (think it was positive when really its negative) if we considered Compliers + Never takers. Thus it probably makes sense to focus on Compliers (those who receive the treatment), in this example_
 
 ## FE exercise 5.6.
 
@@ -86,12 +85,12 @@ In terms of Complier's average causal effect (CACE), the exaggerated report of 5
 ## FE exercise 5.10.
 
 ```{r, message=F, warning=F}
-library(foreign)
 #setwd
-setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Assignments/Problem Set 4/")
+library(foreign)
+#setwd("/Users/ceccarelli/MIDS/DATASCI_W241/Assignments/Problem Set 4/")
 d5.10 <- read.dta("Guan_Green_CPS_2006.dta.dta")
 
-summary(d5.10
+summary(d5.10)
 ```
 
 a. Using the dataset, estimate ITT
@@ -140,7 +139,7 @@ c.se.ci <- c(c.se.ate -1.96 *c.se.se, c.se.ate+1.96*c.se.se)
 
 ```
 
-The p-value is highly statistically significant and I'd be quite confident rejecting the sharpe null that the difference between each observation is zero. Also, a look at the 95% confidence interval (that doens't cross zero), would indicate that there is a good chance of an intent to treat effect.
+_The p-value is highly statistically significant and I'd be quite confident rejecting the sharpe null that the difference between each observation is zero. Also, a look at the 95% confidence interval (that doens't cross zero), would indicate that there is a good chance of an intent to treat effect._
 
 c. Assume that the leaflet had no effect on turnout. Estimate the CACE.
 
@@ -186,7 +185,7 @@ f. Raised turnout among never takers by 3%, given this assumption, estimate CACE
 
 ## Exercise 5.11
 
-a. Estimate the proportion of Compliers based on subjects' response to treatment & placebo.
+a. Estimate the proportion of Compliers by using the data on the Treatment group.  Then compute a second estimate of the proportion of Compliers by using the data on the Placebo group.  Are these sample proportions statistically significantly different from each other?  Explain why you would not expect them to be different, given the experimental design.
 
 b. Do the data suggest that Never-Takers in the treatment and placebo groups havet the same rate of turnout?
 
@@ -199,24 +198,33 @@ d. Estimate the CACE of receiving treatments using two different methods.
 
 a. In the advertising example of Lewis and Reiley (2014), assume some treatment-group members are friends with control-group members.
 
+
+
 b. Consider the police displacement example from the bulleted list in the introduction to FE 8, where we are estimating the effects of enforcement on crime.
+
+_In the case where an untreated location was adjacent to a treated neighbor, there could be an "artifical" surge in crime resulting in an over-estimate of the ate between the two locations of the police intervention effect._
 
 c. Suppose employees work harder when you experimentally give them compensation that is more generous than they expected, that people feel resentful (and therefore work less hard) when they learn that their compensation is less than others, and that some treatment-group members talk to control group members.
 
-d. When Olken (2007) randomly audits local Indonesian governments for evidence of corruption, suppose control-group governments learn that treatment-group governments are being randomly audited and assume they are likely to get audited too
+_In this communication interference example, the causal effect of the direct treatment to the employees receiving the compensation increase may be substantial, but given the interference may be "canceled" out by resentful employees working less hard. Thus the effect would be underestimated_
+
+
+d. When Olken (2007) randomly audits local Indonesian governments for evidence of corruption, suppose control-group governments learn that treatment-group governments are being randomly audited and assume they are likely to get audited too.
+
+_In this deterrence/communication interference example, if treatment and control are compared, the effect of the audit may be underestimated because the control groups would see an equal decrease in corruption with the expectation that they will be audited_
 
 ## Exercise 8.2
 
 National Surveys indicate that college roommates tend to have correlated weights. The more one roommate weighs at the end of the freshman year, the more the other freshman roomate weights. On the other hand, researchers studying housing arrangements in which roommates are randomly paired together find no correlation between two roommates' weights at the end of their freshman year. Explain how these two facts can be reconciled.
 
-
+_If researchers are invoking the non-interference assumption in their research (and not accounting for spillover between students -- receving the treatment "college"), they presume that the affect of college on one individual's weight randomly assigned to the same room as his/her roommate has no affect on the other's. Additionally, an added  difficulty is that in many cases college roommates are actually assigned as pairs and share similar potential outcomes -- because they're likely to be similar in some way. Clustered assignment must be taken into account in this instance and could be accounting for the difference between the National Survey results and the researchers findings_
 
 
 ## Exercise 8.10
 
 a. Suppose you were seeking to estimate the ATE of running on Tetris. Explain the assumptions needed.
 
-
+_Two primary assumptions are requried to estimate in this within-subjects experiment: 1) the no anticipation assumption and 2) no persistence assumption. The no anticipation assumption would mean that potential outcomes are unaffected by treatments in the future... That is, tetris score is unaffected by the prospect of running. No persistence means that potential outcomes don't persist between periods i.e. if running increased tetris score on day 1, that effect of running would not carry over to day 2._
 
 b. Estimate the effect of running on Tetris score. Use randomization inference to test the sharp null hypothesis
 
@@ -249,8 +257,6 @@ cat(" CACE = ", mod$coefficients[2,1])
 
 ```
 
-
-
 c. One way to lend credibility to within-subjects results is to verify the no-anticipation assumption. Use the variable Run to predict the tetris score on the preceding day.
 
 ```{r, message=F, warning=F}
@@ -279,7 +285,7 @@ mod
 
 
 ```
-The  effect is very small and seems to confirm the no-anticipation assumption
+_The  effect is very small and seems to confirm the no-anticipation assumption_
 
 
 d. If Tetris responds to exercise, one might suppose that energy levels and GRE scores would as well. Are these hypothesis borne out by the data?
