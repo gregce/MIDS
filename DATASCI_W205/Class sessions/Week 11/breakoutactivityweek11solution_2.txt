@@ -1,0 +1,41 @@
+>>> import networkx as nx
+>>> ngraph = nx.read_gml("marvel_characters.gml")
+
+Size of graph?
+>>> nodes = nx.number_of_nodes(ngraph)
+>>> print nodes
+6086
+
+Diameter of graph?
+>>> d = nx.diameter(ngraph)
+Graph not connected
+>>> Gcc = sorted(nx.connected_component_subgraphs(ngraph), key=len, reverse=True)
+>>> G0=Gcc[0]
+>>> d = nx.diameter(G0)
+>>> print d
+7
+
+How many components are in the graph?
+>>> cc_n = nx.number_connected_components(ngraph)
+>>> print cc_n
+5
+
+How big is the giant component?
+>>> largest_cc = max(nx.connected_components(ngraph), key=len)
+>>> print len(largest_cc)
+6066
+>>> smallest_cc = min(nx.connected_components(ngraph), key=len)
+>>> print len(smallest_cc)
+2
+
+Isolate the giant component as a new graph
+>>> Gcc = sorted(nx.connected_component_subgraphs(ngraph), key=len, reverse=True)
+>>> G0=Gcc[0]
+
+Calculate the pagerank for giant component
+>>> pr = nx.pagerank(G0)
+>>> print pr
+
+Find the number of communities in the giant component using k-clique
+>>> cliques = list(nx.k_clique_communities(ngraph,40))
+>>> len(cliques)

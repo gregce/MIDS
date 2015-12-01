@@ -1,0 +1,321 @@
+---
+title: 'Problem Set #4'
+author: 'Experiment Design: Alex & Coco'
+date: "November 18, 2015"
+output: pdf_document
+---
+
+Some guidelines for submitting problem sets in this course:
+
+- Please submit a PDF document rather than a Word document or a Google document.
+- Please put your name at the top of your problem set.
+- Please **bold** or *highlight* your numerical answers to make them easier to find.
+- If you'll be using `R` or `Python` code to calculate your answers, please put the code and its output directly into your Problem Set PDF document.
+- It is highly recommended, although not required, that you use the RMarkdown feature in RStudio to compose your problem set answers. RMarkdown allows you to easily intermingle analysis code and answers in one document. It is of a similar design as `jupyter` and an ipython notebook.
+- You do not need to show work for trivial calculations, but showing work is always allowed.
+- For answers that involve a narrative response, please feel free to describe the key concept directly and briefly, if you can do so, and do not feel pressure to go on at length.
+- Please ask us questions about the problem set if you get stuck. **Don’t spend more than 20 minutes puzzling over what a problem means.** 
+- Please ensure that someone (us!) can compile your solution set. The best way is to use the web-hosted links we've provided. 
+
+# FE exercise 5.2
+a. Make up a hypothetical schedule of potential outcomes for three Compliers and three Never-Takers where the ATE is positive but the CACE is negative. **Example answer:**
+
++-------------+------+------+--------+
+| Type        | Y(0) | Y(1) | $\tau$ |
++=============+======+======+========+
+| Complier    | 10   | 7    | -3     |
++-------------+------+------+--------+
+| Complier    | 9    | 7    | -2     |
++-------------+------+------+--------+
+| Complier    | 10   | 9    | -1     |
++-------------+------+------+--------+
+| Never-Taker | 2    | 8    | 6      |
++-------------+------+------+--------+
+| Never-Taker | 1    | 9    | 8      |
++-------------+------+------+--------+
+| Never-Taker | 3    | 7    | 4      |
++-------------+------+------+--------+
+
+$$ATE = \frac{-3 -2 -1 +6 +8 +4}{6} = 2$$
+
+$$CACE = \frac{-3-2-1}{3} = -2$$
+
+b. Suppose that an experiment were conducted on your pool of subjects. In what ways would the estimated CACE be informative or misleading? *That depends on what we're interested in! If I put on my academic hat, then the only thing I care about is the effect among compliers, and so the CACE is telling me exactly what I want to know. But, when I put on my program-design hat, then I see that the CACE is telling me something that is severly divorced from reality.*
+
+c. *In addition, please also answer this question*: Which population is more relevant to study for future decision making: the set of Compliers, or the set of Compliers plus Never-Takers? Why? *The CACE would be informative for the type of people who tend to be compliers, but it would be hyper-misleading for the population in general since Never-Takers (in this contrived example) are so positively affected by the treatment that the net effect on the sample as a whole is positive. This frequently occurs in medical studies. Patients who choose to take their medicine are often helped by a drug but patients who do not often might have been hurt (why they chose not to take it). This implies that efforts to encourage patients to take certain medicines should themselves be tested, even if the medicine itself has been found to have a positive CACE.*
+
+# FE exercise 5.6
+Suppose that a researcher hires a group of canvassers to contact a set of 1,000 voters randomly assigned to a treatment group. When the canvassing effort concludes, the canvassers report that they successfully contacted 500 voters in the treatment group, but the truth is that they only contacted 250. When voter turnout rates are tabulated for the treatment and control groups, it turns out that 400 of the 1,000 subjects in the treatment group voted, as compared to 700 of the 2,000 subjects in the control group (none of whom were contacted). 
+
+a. If you believed that 500 subjects were actually contacted, what would your estimate of the CACE be? *The estimated CACE estimate would be 10%*. $$\frac{(400/1000) - (700/2000)}{500/1000}$$
+
+b. Suppose you learned that only 250 subjects were actually treated. What would your estimate of the CACE be? *The estimated CACE estimate would be 20%.* $$\frac{(400/1000) - (700/2000)}{250/1000}$$
+
+c. Do the canvassers' exaggerated reports make their efforts seem more or less effective? Define effectiveness either in terms of the ITT or CACE. Why does the definition matter? *If we define success in terms of the CACE, then the canvassers boastfulness has damaged their deliverable estimates: including untreated subjects in the treatment group dilutes the effects. If they told the truth, the reported CACE estimate would have been 10 percentage points higher. If, instead, we define success in terms of the ITT, then the canvassers boastfulness has had no effect on their deliverable estimate.*
+
+# FE exercise 5.10
+Guan and Green report the results of a canvassing experiment conduced in Beijing on the eve of a local election. Students on the campus of Peking University were randomly assigned to treatment or control groups. Canvassers attempted to contact students in their dorm rooms and encourage them to vote. No contact with the control group was attempted. Of the 2,688 students assigned to the treatment group, 2,380 were contacted. A total of 2,152 students in the treatment group voted; of the 1,334 students assigned to the control group, 892 voted. One aspect of this experiment threatens to violate the exclusion restriction. At every dorm room they visited, even those where no one answered, canvassers left a leaflet encouraging students to vote. 
+
+```{r, include=FALSE}
+library(foreign)
+library(data.table)
+library(stargazer) 
+```
+
+```{r}
+d <- read.dta("http://hdl.handle.net/10079/zkh18mj")
+d <- data.table(d)
+d
+```
+
+a. Using the data set from the book's website, estimate the ITT. First, estimate the ITT using the difference in two-group means. Then, estimate the ITT using a linear regression on the appropriate subset of data. *Heads up: There are two NAs in the data frame. Just na.omit to remove these rows.*
+
+```{r}
+## two group means
+## data.table 
+(itt <- d[treat2 == 1, mean(turnout, na.rm = T)] - d[treat2 == 0 , mean(turnout, na.rm = T)])
+# or data.frame
+mean(d$turnout[d$treat2 == 1], na.rm = T) - mean(d$turnout[d$treat2 == 0], na.rm = T)
+
+## linear model 
+m <- lm(turnout ~ treat2, data = d)
+summary(m)
+```
+
+b. Use regression to test the sharp null hypothesis that the ITT is zero for all observations, taking into account the fact that random assignment was clustered by dorm room. Interpret your results. 
+
+```{r}
+## load the clustering function 
+cl <- function(fm, cluster){
+  require(sandwich, quietly = TRUE) 
+  require(lmtest, quietly = TRUE)
+  M <- length(unique(cluster))
+  N <- length(cluster)
+  K <- fm$rank
+  dfc <- (M/(M-1))*((N-1)/(N-K))
+  uj <- apply(estfun(fm),2, function(x) tapply(x, cluster, sum)) 
+  vcovCL <- dfc*sandwich(fm, meat=crossprod(uj)/N)
+  coeftest(fm, vcovCL)
+}
+## clean the data 
+d2 <- na.omit(d)
+## estimate the model 
+m2 <- lm(turnout ~ treat2, data = d2)
+cl(m2, cluster = d2$dormid)
+```
+
+c. Estimate the CACE. Estimate this quantity using data means, and also using linear models on the appropriate subsets of data. 
+
+```{r}
+## differences in means 
+(cr <- d[treat2 == 1, mean(contact)])
+(cace <- itt / cr)
+## linear models 
+# via two-stage-least squares
+first.stage  <- lm(contact ~ treat2, data = d)
+d$p <- predict(first.stage)
+second.stage <- lm(turnout ~ p, data = d)
+summary(second.stage) 
+```
+
+d. *SKIP*
+e. *SKIP*
+f. *SKIP* 
+
+# FE exercise 5.11
+Nickerson describes a voter mobilization experiment in which subjects were randomly assigned to one of three conditions: a baseline group (no contact was attempted); a treatment group (canvassers attempted to deliver an encouragement to vote); and a placebo group (canvassers attempted to deliver an encouragement to recycle). Based on the results in the table below answer the following questions 
+
++----------------------+-----------+------+---------+
+| Treatment Assignment | Treated ? | N    | Turnout |
++======================+===========+======+=========+
+| Baseline              | No       | 2572 | 31.22%  |
++----------------------+-----------+------+---------+
+| Treatment            | Yes       | 486  | 39.09%  |
++----------------------+-----------+------+---------+
+| Treatment            | No        | 2086 | 32.74%  |
++----------------------+-----------+------+---------+
+| Placebo              | Yes       | 470  | 29.79%  |
++----------------------+-----------+------+---------+
+| Placebo              | No        | 2109 | 32.15%  |
++----------------------+-----------+------+---------+
+
+**First** Use the information to make a table that has a full recovery of this data. That is, make a `data.frame` or a `data.table` that will have as many rows a there are observations in this data, and that would fully reproduce the table above. (*Yes, this might seem a little trivial, but this is the sort of "data thinking" that we think is important.*)
+
+```{r, tidy=FALSE}
+rm(list = ls())
+nRows <- sum(2572, 486, 2086, 470, 2109)
+d <- data.table(group = rep(NA, nRows))
+d[ , group := c(rep("baseline", 2572), 
+                rep("treatment", sum(486, 2086)), 
+                rep("placebo", sum(470, 2109))) 
+  ]
+d[ , treated  := c(rep(0, 2572), rep(1, 486), rep(0, 2086), rep(1, 470), rep(0, 2109)) ]
+## fill yes/no function 
+yesNo <- function(N, pct) { 
+  k <- round(N * pct, 0)
+  k1 <- N - k
+  c(rep(1, k), rep(0, k1)) 
+}
+
+d[group == "baseline",                  turnout := yesNo(.N, .3122)]
+d[group == "treatment" & treated == 1,  turnout := yesNo(.N, .3909)]
+d[group == "treatment" & treated == 0,  turnout := yesNo(.N, .3274)]
+d[group == "placebo"   & treated == 1,  turnout := yesNo(.N, .2979)]
+d[group == "placebo"   & treated == 0,  turnout := yesNo(.N, .3215)]
+d
+
+d[group == "baseline",  prop.table(table(turnout))]
+d[group == "treatment", prop.table(table(turnout)), by = treated]
+d[group == "placebo",   prop.table(table(turnout)), by = treated]
+
+## spot check
+d[ , prop.table(table(turnout)), by = c("group", "treated")]
+```
+a. We are rewriting part (a) as follows: "Estimate the proportion of Compliers by using the data on the Treatment group.  Then compute a second estimate of the proportion of Compliers by using the data on the Placebo group.  Are these sample proportions statistically significantly different from each other?  Explain why you would not expect them to be different, given the experimental design." (Hint: ITT_D means "the average effect of the treatment on the dosage of the treatment." I.E., it’s the contact rate $\alpha$ in the async).
+
+```{r}
+d[group == "treatment", mean(treated)]   
+d[group == "placebo", mean(treated)]  
+t.test(x = d[group == "treatment", treated], y = d[group == "placebo", treated])
+
+## we can do this with a model too
+m <- lm(treated ~ as.factor(group), data = d[group %in% c("treatment", "placebo")])
+m <- d[group %in% c("treatment", "placebo"), lm(treated ~ group)]
+summary(m)
+## These produce the same p.value. Because stats are [amazing / magic]. 
+``` 
+
+b. Do the data suggest that Never Takers in the treatment and placebo groups have the same rate of turnout? Is this comparison informative? 
+
+```{r}
+## means 
+d[group != "baseline" & treated == 0, .(mean = mean(turnout, na.rm = TRUE), 
+                                           sem  = sqrt(var(turnout) / .N) ), 
+                                           by = group]
+## models 
+m <- lm(turnout ~ as.factor(group), data = d[treated == 0 & group != "baseline", ])
+m <- d[treated == 0 & group != "baseline", lm(turnout ~ group)]
+summary(m)
+```
+
+c. Estimate the CACE of receiving the placebo. Is this estimate consistent with the substantive assumption that the placebo has no effect on turnout? 
+```{r} 
+first.stage <- lm(treated ~ group, d[group != "treatment", ])
+d[group != "treatment", p := predict(first.stage)]
+second.stage <- lm(turnout ~ p, data = d[group != "treatment", ])
+summary(second.stage)
+``` 
+
+d. Estimate the CACE of receiving the treatment using two different methods. First, use the conventional method of dividing the ITT by the ITT_{D}. 
+
+```{r, tidy = TRUE}
+## means 
+itt  <- d[group == "treatment", mean(turnout, na.rm = T)] - d[group == "baseline", mean(turnout, na.rm = T)]
+ittd <- d[group == "treatment", mean(treated)] # same thing
+(itt / ittd)
+## models 
+itt  <- lm(turnout ~ group, data = d[group != "placebo", ])
+ittd <- lm(treated ~ 1, data = d[group == "treatment"])
+(coef(itt)[2] / coef(ittd)[1])
+## better models 
+first.stage <- lm(treated ~ group, d[group != "placebo", ])
+d[group != "placebo", p := predict(first.stage)]
+second.stage <- lm(turnout ~ p, data = d[group != "placebo", ])
+summary(second.stage)
+```
+
+e. Then, second, compare the turnout rates among the Compliers in both the treatment and placebo groups. Interpret the results. 
+
+```{r, results='asis'}
+m <- lm(turnout ~ group, d[treated == 1 & group != "baseline", ])
+stargazer(m, type = "latex", header = F)
+```
+
+# More Practice 
+Determine the direction of bias in estimating the ATE for each of the following situations when we randomize at the individual level.  Do we over-estimate, or underestimate? Briefly but clearly explain your reasoning.
+
+a. In the advertising example of Lewis and Reiley (2014), assume some treatment-group members are friends with control-group members. 
+
+**Underestimate.**  *This could cause spillover that results in an underestimate of the treatment effect. This second hand advertising could raise the spending of the control group making the bump in treatment spending from the advertisement look smaller.*
+
+b. Consider the police displacement example from the bulleted list in the introduction to FE 8, where we are estimating the effects of enforcement on crime. 
+
+**Overestimate.** *It’s possible spillovers could exaggerate the effect of the crime suppression effort if the treatment simply relocates where criminal activity occurs to control areas. By lowering the crime in one area at the expense of higher crime in an adjacent area there is no net effect, but there would be a large difference in the two areas crime rates as a result of the treatment.*
+
+c. Suppose employees work harder when you experimentally give them compensation that is more generous than they expected, that people feel resentful (and therefore work less hard) when they learn that their compensation is less than others, and that some treatment-group members talk to control group members. 
+
+**Overestimate.** *In this experimental design, the control group’s work effort might be negatively affected by learning that their coworkers were more generously compensated. The resulting drop in production from the control group would result in an overestimate of the relative productivity of the treatment group.*
+
+d. When Olken (2007) randomly audits local Indonesian governments for evidence of corruption, suppose control-group governments learn that treatment-group governments are being randomly audited and assume they are likely to get audited too. 
+
+**Underestimate.** *In this scenario, treating some governments lowered corruption in all governments. Since there is a drop in the control as well as treatment groups as a result of intervention, we would underestimate the effect of auditing when looking at corruption levels between groups. Moreover, we don’t properly credit the estimated treatment effect for its indirect effect among those that hear about the audits. This deterrence effect could be large part of the treatment’s effect (e.g., IRS audits are probably like this).*
+
+# FE exercise 8.2
+National surveys indicate that college roommates tend to have correlated weight. The more one roommate weights at the end of the freshman year, the more the other freshman roommate weights. On the other hand, researchers studying housing arrangements in which roommates are randomly paired together find no correlation between two roommates' weights at the end of their freshman year. *Explain how these two facts can be reconciled.*  
+
+*This is probably caused by selection bias. Students with a tendency to gain weight over the course of the year may have a tendency to select people as roommates with this same tendency (e.g., people who both intend to be on the same sports team). When people are randomly paired, however, this selection bias disappears.*
+
+# FE exercise 8.10
+A doctoral student conducted an experiment in which she randomly varied whether she ran or walked 40 minutes each morning. In the middle of the afternoon over a period of 26 days she measured the following outcome variables: (1) her weight; (2) her score in Tetris; (3) her mood on a 0-5 scale; (4) her energy; and (5) whether she got a question right on the math GRE. 
+
+```{r}
+d <- read.dta("http://hdl.handle.net/10079/zcrjds4")
+d <- data.table(d)
+head(d)
+d[ , lagRun := c(NA, run[-.N]) ]
+``` 
+
+a. Suppose you were seeking to estimate the average effect of running on her Tetris score. Explain the assumptions needed to identify this causal effect based on this within-subjects design. Are these assumptions plausible in this case? What special concerns arise due to the fact that the subject was conducting the study, undergoing the treatments, and measuring her own outcomes? *In general, for time-series designs like this one, we need to believe the "no anticipation" and "no persistence" assumptions. The no anticipation assumption seems valid here - there is no reason to believe that Tetris score today would be affected by whether or not she receives treatment tomorrow. The no persistence assumption is trickier, as any effects of running yesterday may not have washed out today. One additional issue with this experiment is that it is in no way blind. The subject and the researcher (same person in this case) know the treatments. To make a causal inference you would have to believe that this knowledge in no way affects the potential outcomes. It is easy to imagine this assumption being violated; for example, the researcher may have a prior belief (conscious or not) that running improves concentration and tries harder at Tetris after running to (conscious or not) reinforce this belief.*
+
+b. Estimate the effect of running on Tetris score. Use regression to test the sharp null hypothesis that running has no immediate or lagged effect on Tetris scores. (**Note** the book calls for randomization inference, but this is a bit of a tough coding problem. **HINT**: For the second part of part (b), run one regression of today’s score on both today’s treatment assignment and yesterday’s treatment assignment. Then, calculate the p-value that both effects are zero.)
+
+```{r, results='asis'}
+## First, the direct effect 
+m1 <- lm(tetris ~ run         , data = d)
+m2 <- lm(tetris ~       lagRun, data = d)
+m3 <- lm(tetris ~ run + lagRun, data = d)
+stargazer(m1, m2, m3, type = "latex", header = F)
+```
+
+c. One way to lend credibility to with-subjects results is to verify the no-anticipation assumption. Use the variable `run` to predict the `tetris` score *on the preeceding day*. Presume that the randomization is fixed. Why is this a test of the no-anticipation assumption? Does a test for no-anticipation confirm this assumption? 
+
+```{r}
+## here you can either lag tetris scores or lead running
+## we've already lagged once, so let's lead! 
+
+d[ , leadRun := c(run[-1], NA)]
+m <- lm(tetris ~ leadRun, data = d)
+summary(m)
+```
+
+d. If Tetris responds to exercise, one might suppose that energy levels and GRE scores would as well. Are these hypotheses borne out by the data? *That is a negative ghostrider. There seems to be no effect here.*
+
+```{r, results = 'asis'}
+m1 <- lm(energy ~ run, data = d)
+m2 <- lm(gre ~ run, data = d)
+stargazer(m1, m2, type = "latex", header = F)
+```
+
+e. **Additional Mandatory Question**: Note that the observations in this regression are not necessarily all independent of each other. In particular, think about what happens when we lag a variable. Given this non-independence, would you expect randomization inference to give you a better answer than the regression answer you just obtained in (b)? Why? Which number(s) do you expect to be different in regression than in randomization inference?  What is the direction of the bias?  (This is a conceptual question, so you do not need to conduct the randomization inference to answer it. However, you are certainly welcome to try that exercise if you are curious.) *This is a sneaky question. In fact, there is a deterministic relationship between the whether one ran yesterday and the lagged run variable! The difficulty comes in when we estimate these models using a regression. When we call for a* `lm(tetris ~ run + lagRun, data = d)` *our regression is both unaware and agnostic to the fact that there is a relationship between* `run` *and* `lagRun`. **What does this mean?** *Well, basically it means that the data we are providing to the regression does not have all the information that it could have.* **Why does this matter?** *The more information we have in our data, the more precise our estimates of the causal effect can be.* 
+
+As an example consider the folowoing code (which we did not ask you to produce) that would perform the randomization inference setup in a way that is simliar to an F-test for the necessisity of including `lagRun`. 
+
+```{r, cache = TRUE}
+dSim <- d
+dSim[ , lagRun := c(NA, run[-.N])] 
+m <- lm(tetris ~ run + lagRun, data = dSim)
+summary(m)$fstat
+actualF <- summary(m)$fstat[1]
+
+dSim <- d
+run.sim <- function(){
+  dSim[ , run := sample(c(0,1), .N, replace = T)]
+  dSim[ , lagRun := c(NA, run[-.N])]
+  m <- lm(tetris ~ run + lagRun, data = dSim)
+  return(summary(m)$fstat[1])
+}
+distUnderSharpNull <- replicate(10000, run.sim()) 
+mean(distUnderSharpNull >= actualF) #p-value
+## compare to m2 
+summary(m2)
+```
