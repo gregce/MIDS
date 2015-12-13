@@ -12,6 +12,7 @@ setwd("MIDS/DATASCI_W241/Assignments/Project/")
 library(pryr)
 library(memisc)
 library(stringr)
+library(stargazer)
 library(dplyr)  
 library(ggplot2)
 library(data.table)
@@ -236,6 +237,117 @@ pd.cleaned <- inner_join(pd.gen, pd.iq, by = "IPAddress") %>%
   inner_join(pd.exp2, by = "IPAddress") %>%
   inner_join(pd.fq, by = "IPAddress")
 
+##Update Factors for exp1_Treatment
+pd.cleaned$exp1_Treatment <- factor(pd.cleaned$exp1_Treatment,levels(pd.cleaned$exp1_Treatment)[c(2,1,3,4,5,6)])
+
 ## Write Out Data For Easy Import
 save(pd.cleaned, file="CourseProjectCleanedData.rda")
 write.csv(pd.cleaned, file = "CourseProjectCleanedData.csv",row.names=FALSE, na="")
+
+
+##############################
+## Data Analysis                    
+##############################
+
+
+##########################################
+# Exploratory Analysis
+##########################################
+
+options("scipen"=100, "digits"=4)
+
+
+d<-pd.cleaned
+
+##### Check covariate distributions
+hist(as.numeric(d$gen_TotalTimeSpentMinutes), breaks = 100)
+
+as.data.frame(prop.table(table(d$gen_Gender)))
+
+hist(as.numeric(d$gen_Age))
+
+as.data.frame(prop.table(table(d$gen_Education)))
+
+as.data.frame(prop.table(table(d$gen_Role)))
+
+as.data.frame(prop.table(table(d$gen_Industry)))
+
+summary(lm(iq_PercentageCorrect ~ gen_Gender + gen_Education + gen_Role + gen_Industry, d))
+
+d %>%
+  dplyr::select(gen_Gender, iq_PercentageCorrect) %>%
+  dplyr::group_by(gen_Gender) %>%
+  dplyr::summarise(mean(iq_PercentageCorrect))
+
+###
+#Experiment 1
+###
+
+summary(lm(exp1_TotalCorrect ~ exp1_Treatment, d))
+
+summary(lm(exp1_TotalCorrect ~ exp1_Treatment + gen_Gender + gen_Education + gen_Role + gen_Industry, d))
+
+stargazer(lm(exp1_TotalCorrect ~ exp1_Treatment, d), lm(exp1_TotalCorrect ~ exp1_Treatment + gen_Gender + gen_Education + gen_Role + gen_Industry, d), type = "text")
+
+summary(lm(iq_PercentageCorrect ~ gen_Gender + gen_Education + gen_Role + gen_Industry, d))
+
+
+d %>%
+  dplyr::select(exp1_Treatment, exp1_TotalCorrect) %>%
+  dplyr::group_by(exp1_Treatment) %>%
+  dplyr::summarise(ate = mean(exp1_TotalCorrect)) %>%
+  dplyr::arrange(ate)
+
+###
+#Experiment 2
+###
+
+summary(lm(exp2_TotalCorrect ~ exp2_Treatment, d))
+
+d %>%
+  dplyr::select(exp2_Treatment, exp2_TotalCorrect) %>%
+  dplyr::group_by(exp2_Treatment) %>%
+  dplyr::summarise(ate = mean(exp2_TotalCorrect)) %>%
+  dplyr::arrange(ate)
+
+d %>%
+  dplyr::select(exp2_Treatment, exp2_Question1Response) %>%
+  dplyr::group_by(exp2_Treatment) %>%
+  dplyr::summarise(ate = mean(as.numeric(exp2_Question1Response)) %>%
+  dplyr::arrange(ate)
+
+d %>%
+  dplyr::filter(exp2_Treatment == 'Unordered Table') %>%
+  dplyr::select(exp2_Treatment, exp2_DisplayedTreatment)
+
+
+ggplot(d, aes(x=d$email)) + geom_histogram(binwidth=.5) ##yep, unbalanced
+str(d$gen_Education)
+
+##### Check conversions by treatment w/ dplyr
+d.group <- d %>%
+  select(email, converted) %>%
+  group_by(email) %>%
+  summarise(mean(converted))
+d.group
+
+##### Build a quick univariate linear model to do the same 
+mod.sum <- summary(lm(converted ~ email, d))
+##pull out the estimates
+ate <- mod.sum$coefficients[2,1]
+##compare estimate to difference in means 
+##great they're equivalent
+c(ate, (as.numeric(d.group[2,2]) - as.numeric(d.group[1,2]))) 
+
+##compute a 95% confidence interval from the regression
+## first grab the standard error
+se <- mod.sum$coefficients[2,2]
+##compute the confidence interval
+ci <- c(ate-1.96 *se, ate+1.96*se)
+
+##graph the above
+ggplot(d, aes(x=email, y=converted)) +
+  geom_point(shape=1) +    # Use hollow circles
+  geom_smooth(method=lm, aes(group=1))   # Add linear regression line w/ 95% confidence
+
+

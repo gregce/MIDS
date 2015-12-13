@@ -1,0 +1,19 @@
+## VMs
+
+##Original VM
+ssh -i W205.pem root@52.91.127.213
+
+##Exercise 2 VM
+ssh -i W205.pem root@54.84.245.179
+
+
+
+##Appy VM
+ssh -i W205-key.pem root@54.85.161.214
+
+sshfs root@54.84.245.179:/root/EX2Tweetwordcount/ /Users/GDC/RemoteFolder/ -o IdentityFile=/Users/GDC/W205.pem
+
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'tcount'
+  AND pid <> pg_backend_pid();
