@@ -1,0 +1,94 @@
+---
+title: "RecallResultsAnalysis"
+output: pdf_document
+---
+
+
+```{r}
+#setwd("MIDS/DATASCI_W241/Assignments/Project/")
+
+load(file = "CourseProjectCleanedData.rda")
+
+## Load relevant libraries
+library(pryr)
+library(memisc)
+library(stringr)
+library(stargazer)
+library(dplyr)  
+library(ggplot2)
+library(data.table)
+library(lubridate)
+library(RDSTK)
+
+d<- pd.cleaned %>%
+  filter(recall_Invalid == 0)
+
+
+## preliminary analysis
+table(d$recall_PercentageCorrect)
+
+## review recall means of percentage correct by exp1_Treatment group
+d %>% 
+  dplyr::group_by(exp1_Treatment) %>%
+  dplyr::summarise(outcome = mean(recall_PercentageCorrect))
+
+## code dummy variable to look @ performance between "tufte optimized" vs. non as well as ordered
+d <- d %>%
+  dplyr::mutate(exp1_TreatmentRecallRollupTufte =
+                cases("Not Optimized"=exp1_Treatment %in% c("Nonordered chart junk"
+                                                            ,"Ordered chart junk"
+                                                            ,"Ordered Table"
+                                                            ,"Nonordered table"),
+                    "Tufte Optimized"=exp1_Treatment %in% c("Nonordered tufte", "Ordered tufte"))
+                ,exp1_TreatmentRecallRollupOrdered =
+                  cases("Not Ordered"=exp1_Treatment %in% c("Nonordered chart junk"
+                                                              ,"Nonordered tufte"
+                                                              ,"Nonordered table"),
+                        "Ordered"=exp1_Treatment %in% c("Ordered chart junk", "Ordered tufte","Ordered Table"))
+                      )
+
+
+## review recall means of percentage correct by exp1_Treatment group dummy (when tufte treatments are compared to non tufte treatments)
+d %>% 
+  dplyr::group_by(exp1_TreatmentRecallRollupTufte) %>%
+  dplyr::summarise(outcome = mean(recall_PercentageCorrect))
+
+## review recall means of percentage correct by exp1_Treatment group dummy (when non ordered treatments are compared to ordered)
+d %>% 
+  dplyr::group_by(exp1_TreatmentRecallRollupOrdered) %>%
+  dplyr::summarise(outcome = mean(recall_PercentageCorrect))
+
+#Regress recall_PercentageCorrect on various treatment variables
+
+recall.treat <- lm(recall_PercentageCorrect ~ exp1_Treatment, d)
+
+recall.ordertreat <- lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupOrdered, d)
+
+recall.tuftetreat <- lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupTufte, d)
+
+#Compare results
+
+stargazer(recall.treat, recall.ordertreat, recall.tuftetreat, type = "text")
+
+#Regress recall_PercentageCorrect on various treatment variables controlling for various factors
+
+summary(lm(recall_PercentageCorrect ~ exp1_Treatment + recall_PageFiveTimeMinutes, d))
+summary(lm(recall_PercentageCorrect ~ exp1_Treatment + recall_PageFiveTimeMinutes + gen_Gender + gen_Age + gen_Education + iq_PercentageCorrect, d))
+
+summary(lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupOrdered + recall_PageFiveTimeMinutes, d))
+summary(lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupOrdered + recall_PageFiveTimeMinutes + gen_Gender + gen_Age + gen_Education + iq_PercentageCorrect, d))
+
+summary(lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupTufte + recall_PageFiveTimeMinutes, d))
+summary(lm(recall_PercentageCorrect ~ exp1_TreatmentRecallRollupTufte + recall_PageFiveTimeMinutes + gen_Gender + gen_Age + gen_Education + iq_PercentageCorrect, d))
+
+
+#####################################################################
+#### Swap Variables, look @ time to complete instead of correct score
+#####################################################################
+
+## review recall means of time to complete  by exp1_Treatment group
+d %>% 
+  dplyr::group_by(exp1_Treatment) %>%
+  dplyr::summarise(outcome = mean(recall_PageFiveTimeMinutes))
+
+```

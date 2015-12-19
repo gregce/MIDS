@@ -163,7 +163,6 @@ pd.exp1 <- pd.raw %>%
 ## Recall Information DF
 ## Could include Treatment but this can be joined on if necessary
 
-
 pd.recall <- pd.raw %>%
   slice(2:nrow(pd.raw)) %>%
   mutate(    recall_Question1Response = Q31
@@ -238,6 +237,7 @@ pd.cleaned <- inner_join(pd.gen, pd.iq, by = "IPAddress") %>%
   inner_join(pd.fq, by = "IPAddress")
 
 ##Update Factors for exp1_Treatment
+pd.cleaned$exp1_Treatment <- factor(pd.cleaned$exp1_Treatment)
 pd.cleaned$exp1_Treatment <- factor(pd.cleaned$exp1_Treatment,levels(pd.cleaned$exp1_Treatment)[c(2,1,3,4,5,6)])
 
 ## Write Out Data For Easy Import
@@ -248,6 +248,18 @@ write.csv(pd.cleaned, file = "CourseProjectCleanedData.csv",row.names=FALSE, na=
 ##############################
 ## Data Analysis                    
 ##############################
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ##########################################

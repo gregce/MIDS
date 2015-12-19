@@ -1,12 +1,19 @@
 ## VMs
 
 ##Original VM
-ssh -i W205.pem root@52.91.127.213
+ssh -i W205.pem root@52.3.252.179
 
 ##Exercise 2 VM
 ssh -i W205.pem root@54.84.245.179
 
+##Final Project VM
 
+ssh -i W205.pem root@52.23.237.143
+
+
+##recovery
+
+ssh -i W205.pem root@54.174.213.129
 
 ##Appy VM
 ssh -i W205-key.pem root@54.85.161.214
