@@ -1,0 +1,68 @@
+---
+title: "Problem Set #5 - DATASCI W241"
+author: "Greg Ceccarelli"
+date: "December 19, 2015"
+output: pdf_document
+---
+
+
+##Vietnam draft lottery
+
+```{r, message=F, warning=F}
+##clear global env
+rm( list = ls() )
+
+library(dplyr)
+library(stargazer)
+library(memisc)
+library(data.table)
+
+set.seed(123)
+
+## set working directory
+setwd(dir = "/Users/GDC/MIDS/DATASCI_W241/Assignments/Problem Set 5/")
+
+## read in data
+d <- read.csv("ps5_no2.csv")
+
+#initialize clustered standard errors function
+cl <- function(fm, cluster){
+  require(sandwich, quietly = TRUE)
+  require(lmtest, quietly = TRUE)
+	M <- length(unique(cluster))
+	N <- length(cluster)
+	K <- fm$rank
+	dfc <- (M/(M-1))*((N-1)/(N-K))
+	uj <- apply(estfun(fm),2, function(x) tapply(x, cluster, sum));
+	vcovCL <- dfc*sandwich(fm, meat=crossprod(uj)/N)
+	coeftest(fm, vcovCL)
+}
+```
+
+a. Estimate the “effect” of each year of education on income as an observational researcher might, by just running a regression of years of education on income (in R-ish, income ~ years_education). What does this naive regression suggest?
+
+```{r, message=F, warning=F}
+##clear global env
+mod <- lm(income ~ years_education, data = d)
+summary(mod)
+```
+
+The regression suggests that each additional year of education results in an increase in income by ~$5750.
+
+b. Tell a concrete story, not having to do with the natural experiment, about why the observational regression in part (a) may be biased.
+
+The most believeable story, draft number aside, is that of omitted variable bias. From the previous model, the Rsquared value is ~20%... meaning that years_education is only explaining 1/5 of the variance in income and that there are other factors (currently not in the model) that are likely important. These may things like age, geography, sex, etc.
+
+c. Using regression, estimate the effect of having a high-ranked draft number, the dummy variable you’ve just created, on years of education obtained. Report the estimate and a correctly computed standard error.
+
+```{r, message=F, warning=F}
+##clear global env
+
+d <-
+
+mod <- lm(income ~ years_education, data = d)
+summary(mod)
+```
+
+
+
