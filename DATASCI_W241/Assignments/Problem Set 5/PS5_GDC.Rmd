@@ -5,7 +5,6 @@ date: "December 19, 2015"
 output: pdf_document
 ---
 
-
 ##Vietnam draft lottery
 
 ```{r, message=F, warning=F}
@@ -56,13 +55,85 @@ The most believeable story, draft number aside, is that of omitted variable bias
 c. Using regression, estimate the effect of having a high-ranked draft number, the dummy variable you’ve just created, on years of education obtained. Report the estimate and a correctly computed standard error.
 
 ```{r, message=F, warning=F}
-##clear global env
 
-d <-
+##create dummy
+d <- d %>%
+  dplyr::mutate(hrd = ifelse(draft_number<=80, 1, 0)
+  )
 
-mod <- lm(income ~ years_education, data = d)
-summary(mod)
+#mod <- summary(lm(years_education ~ hrd, data = d))
+#summary(mod)
+
+mod.edu <- cl(lm(years_education ~ hrd,d), d$draft_number)
+
+cat(" ATE = ", mod.edu[2,1], "conf interval = ", c(mod.edu[2,1] - 1.96 * mod.edu[2,2], "-", mod.edu[2,1] + 1.96*mod.edu[2,2]))
 ```
 
 
+d. Using linear regression, estimate the effect of having a high-ranked draft number on income. Report the estimate and the correct standard error.
 
+```{r, message=F, warning=F}
+
+mod.inc <- cl(lm(income ~ hrd,d), d$draft_number)
+
+cat(" ATE = ", mod.inc[2,1]," std. error =", mod.inc[2,2],  "conf interval = ", c(mod.inc[2,1] - 1.96 * mod.inc[2,2], "-", mod.inc[2,1] + 1.96*mod.inc[2,2]))
+```
+
+
+e. Divide the estimate from part (d) by the estimate in part (c) to estimate the effect of education on income.
+
+```{r, message=F, warning=F}
+mod.inc[2,1]/mod.edu[2,1]
+```
+
+The results suggest that every year of education results in a $3122 gain in income for those with high ranked draft numbers.
+
+
+f. Natural experiments rely crucially on the “exclusion restriction” assumption that the instrument (here, having a high draft rank) cannot affect the outcome (here, income) in any other way except through its effect on the “endogenous variable” (here, education). Give one reason this assumption may be violated -- that is, why having a high draft rank could affect individuals’ income other than because it nudges them to attend school for longer.
+
+High draft rank, for those who aren't actually excluded from the draft because they attend school, have a higher probability to actually serve in the Army which teaches a certain set of skills that, later in life, could result in higher income.
+
+
+g. Conduct a test for the presence of differential attrition by treatment condition. That is, conduct a formal test of the hypothesis that the “high-ranked draft number” treatment has no effect on whether we observe a person’s income.
+
+
+```{r, message=F, warning=F}
+
+d_test <- d %>%
+  dplyr::group_by(draft_number) %>%
+  dplyr::summarize(cnt = length(income))
+
+cl(lm(cnt ~ I(ifelse(draft_number<=80, 1, 0)), d_test), d_test$draft_number)
+```
+
+
+h. Tell a concrete story about what could be leading to the result in part (g).
+In the above example, being drafted increases the probability of dieng since War is particularly violent. Thus, those with a high draft number could have been killed in action.
+
+
+i. Tell a concrete story about how this differential attrition might bias our estimates.
+
+Differential attrition is defined as the differential loss of participants from the various comparison groups. This is a problem  because the groups are different because of the people dropping (or in our case, Dieing) out rather than just the treatment. In other words, the differences due to differential attrition and the differences due to the treatments are confounded.
+
+##Regression Discontinuity
+
+A. Summarize the study and its conclusion. Which study did you pick? What is the outcome? What is the “treatment”? What is the discontinuity? What is the conclusion?
+
+I picked Mbiti & Lucas (2013) who test the impact of secondary school quality on student achievement in Kenya, using the cut-off on the primary exit exam required to get into better secondary schools. The outcome in this study is student graduation rates and achievement on the secondary school exit examination. The treatment is attending an elite secondary school in Kenya. The discontinuity, in this case, is Kenya's national standardized primary school exit exam which creates discontinuities in the probability of national school admission. In the paper, the authors ultimately conclude that there is little evidence of positive impacts on learning outcomes for students who attended the elite schools. This suggests that  reputations reflect the selection of students rather than the schools ability to generate value-added test-score gains.
+
+
+B. A throwback to Week 2. Assume the RD was not available, and someone did a simple observational study comparing individuals who happen to get treatment versus those who do not for non-random reasons. What’s an alternative story for a simple association between the outcome and this non-random version of the treatment like this? Try to be as concrete as possible in your storytelling.
+
+The main problem with estimating the causal effect of such an intervention is the endogeneity of assignment to treatment (e.g. school admission). Since high-performing students are more likely to be "awarded" with school admission and continue performing well at the same time, comparing the outcomes of awardees and non-recipients would lead to an upward bias of the estimates. Even if the school they were admitted into did not improve grades at all, awardees would have performed better than non-recipients, simply because school selectioin happened to students who were performing well ex ante.
+
+C. What makes this RD evidence so convincing, relative to an observational study like in part (b)?
+
+Despite the absence of an experimental design, the fun thing about regression discontinuity is that it can exploit exogenous characteristics of the intervention to elict causal effects. If all students who received entrace into an elite secondary school above the cutoff are compared to those just below (presuming they're all very similar), you can compare the outcome of the "awardees" to the counterfactual of the control group (those below the cutoff) to estimate a local treatment effect.
+
+D. What’s an alternative story for why this RD pattern might exist even if the causal effect did not exist? This story might be hard to tell because these are good studies, but do your best.
+
+The simplest alternative story is that the pattern might actually be caused by the school's ability to generate achievement rather than the "sorting" of students from primary school into the elite secondary schools. For example, perhaps the primary school education is extremely poor (likely not the case) and the test is a mechanism that essentially selects on IQ (or some other gauge of aptitude) and not for work effort or prior school related achievement. In this hypothetical, it could actually be the case, for example, that the elite secondary schools really do prepare students well in terms of studies + work ethic and this is ultimately reflected by the discontinuity shown by the authors.
+
+##Feedback
+
+I loved this class. I know that's not extremely helpful feedback, but I think the level of work is just about right. I would recommend making the IRB certification material optional since not much emphasis is placed on it in the course itself and it's extremely lengthy. The problems sets were all very well constructed and I think they helped to really reinforce the concepts we learned in class. 
