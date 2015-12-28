@@ -1,0 +1,3 @@
+,perc_score,scaledscoreaverage
+perc_score,1.0,0.0292264083288
+scaledscoreaverage,0.0292264083288,1.0

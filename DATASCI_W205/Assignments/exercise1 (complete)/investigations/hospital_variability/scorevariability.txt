@@ -1,0 +1,11 @@
+,score_variance,score_stddev,cnt,measurename
+0,495.63641344,22.4148601011,74,Head CT results
+1,463.864791779,21.6004039634,172,Thrombolytic Therapy
+2,278.343291482,16.6886691569,1654,Warfarin therapy discharge instructions
+3,213.758493441,14.6225764588,3491,Venous thromboembolism prophylaxis
+4,132.003797503,11.4924657099,1810,Stroke Education
+5,125.245541838,11.2610439619,81,Home Management Plan of Care Document
+6,71.6937813479,8.46943314024,1912,Discharge instructions
+7,50.1282542475,7.08140607337,2777,ICU venous thromboembolism prophylaxis
+8,41.5990213605,6.45122246203,2162,Venous Thromboembolism (VTE) Prophylaxis
+9,40.5601538333,6.3702886019,1987,Anticoagulation overlap therapy
