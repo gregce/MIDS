@@ -2,7 +2,27 @@
 <html>
 <head>
 	<title>My first web pages</title>
+	<link rel="stylesheet" href="style.css">
 <body>
+
+
+<p>If you add the line <code><var>givevaderachuckle</var> = true;</code> to the <code>destroy_planet</code> subroutine and then type <kbd>ilovejabba</kbd> into the console, the big bad green Death Star laser will etch <samp>Slug Lover!</samp> on the planet's surface.</p>
+
+
+<pre><code>
+&lt;div id="intro"&gt;
+    &lt;h1&gt;Some heading&lt;/h1&gt;
+    &lt;p&gt;Some paragraph paragraph thing thing thingy.&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+
+
+
+<p>This web site is about <abbr title="HyperText Markup Language">HTML</abbr> and <abbr title="Cascading Style Sheets">CSS</abbr>.</p>
+
+<div id="scissors">
+    <p>This is <span class="paper">crazy</span></p>
+</div>
 	<h1>This is my first webpage</h1>
 	<h2> What this is</h2>
 	<p> A Simple page put together using HTML</p>
@@ -16,28 +36,43 @@
 	<Where to find the tutorial</h2>
 	<p><a href="http://www.htmldog.com">HTML Dog</a></p>	
 
+
 <table>
     <tr>
-        <td>Row 1, cell 1</td>
-        <td>Row 1, cell 2</td>
-        <td>Row 1, cell 3</td>
+        <th>Column 1 heading</th>
+        <th>Column 2 heading</th>
+        <th>Column 3 heading</th>
     </tr>
     <tr>
         <td>Row 2, cell 1</td>
-        <td>Row 2, cell 2</td>
-        <td>Row 2, cell 3</td>
+        <td colspan="2">Row 2, cell 2, also spanning Row 2, cell 3</td>
     </tr>
     <tr>
-        <td>Row 3, cell 1</td>
+        <td rowspan="2">Row 3, cell 1, also spanning Row 4, cell 1</td>
         <td>Row 3, cell 2</td>
         <td>Row 3, cell 3</td>
     </tr>
     <tr>
-        <td>Row 4, cell 1</td>
         <td>Row 4, cell 2</td>
         <td>Row 4, cell 3</td>
     </tr>
 </table>
+
+<h1>Some random glossary thing</h1>
+<dl>
+    <dt>HTML</dt>
+    <dd>Abbreviation for HyperText Markup Language - a language used to make web pages.</dd>
+
+    <dt>Dog</dt>
+    <dd>Any carnivorous animal belonging to the family Canidae.</dd>
+    <dd>The domesticated sub-species of the family Canidae, Canis lupus familiaris.</dd>
+
+    <dt>Moo juice</dt>
+    <dt>Cat beer</dt>
+    <dt>Milk</dt>
+    <dd>A white liquid produced by cows and used for human consumption.</dd>
+</dl>
+
 
 <textarea rows="5" cols="20">A big load of text</textarea>
 
@@ -59,6 +94,15 @@
 
 </form>
 
+
+<h3>Author contact details</h3>
+<address>
+<ul>
+    <li>0123-456-7890</li>
+    <li>author_dude@noplaceinteresting.com</li>
+    <li>http://www.noplaceinteresting.com/contactme/</li>
+</ul>
+</address>
 
 
 </body>
