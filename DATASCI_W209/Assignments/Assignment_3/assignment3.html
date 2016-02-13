@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Page Template</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.15/d3.min.js"></script>
+    </head>
+
+    <!-- 
+    Todo:
+    1. Load in activity data 
+    2. Create a scatter plot of miles vs total time
+    3. Think about a way to size / color the data points (by elevation or something else)
+    4. Figure out labelling etc
+
+
+
+            var dataset = [
+                [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
+                [410, 12], [475, 44], [25, 67], [85, 21], [220, 88]
+              ];
+              document.write(d3.max(dataset[0]));
+
+
+           // console.log(d3.min(dataset));
+           for (var i = 0; i < 25; i++) {           
+                    console.log(dataset[i].);   
+                }
+    -->
+    <body>
+
+        <script type="text/javascript">
+
+       d3.csv("activities.csv", function(data) {
+            var dataset = data;
+
+           d3.select("body").selectAll("p")
+                .data(dataset)
+                .enter()
+                .append("p")
+                .text(dataset[0]);
+
+
+        });
+        </script>
+
+    </body>
+
+
+</html>
