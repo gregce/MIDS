@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://localhost:8000/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <title>D3 Page Template</title>
+        <script type="text/javascript" src="./D3 Page Template_files/d3.js"></script>
+        <link rel="stylesheet" href="./D3 Page Template_files/style.css">
+
+    <style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+    <body>
+        <script type="text/javascript">
+            // Your beautiful D3 code will go here
+            /*var dataset = [ 25, 7, 5, 26, 11, 8, 25, 14, 23, 19,
+                14, 11, 22, 29, 11, 13, 12, 17, 18, 10,
+                24, 18, 25, 9, 3 ];*/
+
+                var dataset = [];                         //Initialize empty array
+                for (var i = 0; i < 25; i++) {            //Loop 25 times
+                    var newNumber = Math.random() * 30;   //New random number (0-30)
+                    dataset.push(newNumber);              //Add new number to array
+                }
+            
+            /*d3.select("body")
+              .selectAll("p")
+              .data(dataset)
+              .enter()
+              .append("p")
+              .text(function(d) { return d; })
+              .style("color", function(d) {
+                if (d>5) {
+                    return "yellow";
+                } else {
+                    return "black";
+                }
+              });*/
+              d3.select("body")
+                .selectAll("div")
+                .data(dataset)
+                .enter()
+                .append("div")
+                .attr("class","bar")
+                .style("height", function(d)
+                {
+                    return (d*5) + "px"
+                });
+        </script><div class="bar" style="height: 142.711px;"></div><div class="bar" style="height: 105.461px;"></div><div class="bar" style="height: 111.371px;"></div><div class="bar" style="height: 29.3291px;"></div><div class="bar" style="height: 111.498px;"></div><div class="bar" style="height: 59.0414px;"></div><div class="bar" style="height: 80.4709px;"></div><div class="bar" style="height: 90.1589px;"></div><div class="bar" style="height: 34.2123px;"></div><div class="bar" style="height: 104.807px;"></div><div class="bar" style="height: 35.7893px;"></div><div class="bar" style="height: 36.9143px;"></div><div class="bar" style="height: 71.4846px;"></div><div class="bar" style="height: 49.5285px;"></div><div class="bar" style="height: 143.419px;"></div><div class="bar" style="height: 125.323px;"></div><div class="bar" style="height: 72.6784px;"></div><div class="bar" style="height: 124.164px;"></div><div class="bar" style="height: 21.9148px;"></div><div class="bar" style="height: 60.541px;"></div><div class="bar" style="height: 116.919px;"></div><div class="bar" style="height: 33.3618px;"></div><div class="bar" style="height: 71.0156px;"></div><div class="bar" style="height: 143.894px;"></div><div class="bar" style="height: 133.902px;"></div>
+
+
+    
+</body></html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Greg's Strava Running Activity</title>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
+		<style type="text/css">
+			/* No style rules here yet */
+			.body {
+				font: 14px sans-serif;
+			}
+
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: #000;
+				shape-rendering: crispEdges;
+			}	
+
+			.line {
+				fill: none;
+				/* web green */
+				stroke: #008000;
+				stroke-width: 3.5px;
+			}
+
+      div.tt {
+      position: absolute;
+      text-align: center;
+      width: 90px;
+      height: 40px;
+      padding: 2px;
+      font: 14px sans-serif;
+        background: silver;
+      border: 0px;
+      border-radius: 30px;
+      pointer-events: none;
+      }
+
+      fieldset.fs{
+       border-color:#FFF;
+       border-style: solid;
+      }
+
+		</style>
+	</head>
+	<body>
+
+<fieldset class="fs">
+    <legend>Filter Mileage</legend>
+
+<form name="myform" onSubmit="return clickfilter()">
+        <input name="Submit"  type="submit" size="50" style="font-size: 14px;" color="#fff"    value="Filter" >
+        <input type="text" id="mileage" size="80" style="font-size: 14px;" placeholder="Filter days when run mileage was greater than...">
+</fieldset>
+
+		<script type="text/javascript">
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 440 - margin.top - margin.bottom;
+
+var formatDate = d3.time.format("%d-%b-%y");
+var formatTime = d3.time.format("%e %B");
+
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.miles); });
+
+
+var currentMile = 0;
+
+// Define the div for the tooltip
+var div = d3.select("body").append("div") 
+    .attr("class", "tt")       
+    .style("opacity", 0);
+
+function type(d) {
+
+  d.date = formatDate.parse(d.date);
+  d.miles = +d.miles;
+  return d;
+}
+
+//when page loads draw graph
+draw(currentMile);
+
+function clickfilter(event){
+        console.log(document.getElementById("mileage").value);
+        draw(document.getElementById("mileage").value);
+        return false;
+            }
+
+// Redraw graph with filter value
+function draw(currentMile){
+
+// remove the svg canvas before redrawing it
+d3.select("svg").remove();
+
+// Add the SVG canvas
+svg = d3.select("body")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("activities_limited_update.csv", type, function(data) {
+   
+   //To do add user alert and reset subset if entry is greater than max(miles)
+
+   subset = data.filter(function(row) {
+        return row.miles > currentMile;
+  });
+
+  x.domain(d3.extent(subset, function(d) { return d.date; }));
+  
+  // Round miles from CSV and set domain
+  y.domain(d3.extent(subset, function(d) { return Math.round(d.miles * 100) / 100 ; }));
+ 
+ // Append xaxis
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+  
+// Append yaxis
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+     .append("text")
+      .attr({
+        transform: "rotate(-90)",
+        y: 6,
+        dy: ".71em"
+      })
+      .style("text-anchor", "end")
+      .text("Distance (MI)");
+  
+// Draw line
+  svg.append("path")
+      .datum(subset)
+      .attr("class", "line")
+      .attr("d", line);
+
+// Add scatter plot attached to line
+    svg.selectAll("dot")  
+        .data(subset)     
+    .enter().append("circle")               
+        .attr("r", 4)   
+        .attr("cx", function(d) { return x(d.date); })     
+        .attr("cy", function(d) { return y(d.miles); })   
+        //Set mouseover function so tool tip activates
+        .on("mouseover", function(d) {    
+            div.transition()    
+            // Brief fade in
+                .duration(200)    
+                .style("opacity", 0.8); 
+
+            // make sure text box is properly formatted and labelled   
+            div .html(formatTime(d.date) + "<br/>"  + Math.round(d.miles * 100) / 100  + " miles")  
+                .style("left", (d3.event.pageX) + "px")   
+                .style("top", (d3.event.pageY - 28) + "px");  
+            })          
+        .on("mouseout", function(d) {   
+            div.transition()
+            //Brief fade out    
+                .duration(500)    
+                .style("opacity", 0); 
+        });
+
+});
+}
+
+		</script>
+	</body>
+</html>
+

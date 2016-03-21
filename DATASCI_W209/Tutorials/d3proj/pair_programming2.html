@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  </head>
+  <body>
+    <table id="split">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+
+    <script type="text/javascript">
+      var sessions = new Array(
+        {id: 1, distance: 50},
+        {id: 2, distance: 50},
+        {id: 3, distance: 50},
+        {id: 4, distance: 50},
+        {id: 6, distance: 70}
+ );
+      
+      // create the table header
+      var thead = d3.select("thead").selectAll("th")
+.data(d3.keys(sessions[0]))
+.enter().append("th").text(function(d){return d});
+// fill the table
+// create rows
+var tr = d3.select("tbody").selectAll("tr")
+.data(sessions).enter().append("tr")
+// cells
+var td = tr.selectAll("td")
+  .data(function(d){return d3.values(d)})
+  .enter().append("td")
+  .text(function(d) {return d})
+    </script>
+
+  </body>
+</html>
