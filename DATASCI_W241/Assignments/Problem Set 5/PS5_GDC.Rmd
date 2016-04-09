@@ -96,7 +96,6 @@ High draft rank, for those who aren't actually excluded from the draft because t
 
 g. Conduct a test for the presence of differential attrition by treatment condition. That is, conduct a formal test of the hypothesis that the “high-ranked draft number” treatment has no effect on whether we observe a person’s income.
 
-
 ```{r, message=F, warning=F}
 
 d_test <- d %>%
@@ -106,10 +105,9 @@ d_test <- d %>%
 cl(lm(cnt ~ I(ifelse(draft_number<=80, 1, 0)), d_test), d_test$draft_number)
 ```
 
-
 h. Tell a concrete story about what could be leading to the result in part (g).
-In the above example, being drafted increases the probability of dieng since War is particularly violent. Thus, those with a high draft number could have been killed in action.
 
+In the above example, being drafted increases the probability of dieng since War is particularly violent. Thus, those with a high draft number could have been killed in action.
 
 i. Tell a concrete story about how this differential attrition might bias our estimates.
 
