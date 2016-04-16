@@ -134,11 +134,9 @@ server <- function(input, output) {
   
   # Create formatted addresses for popup
   origin.fa <- reactive({paste0(sep = "",  "<b>Origin</b><br>", origin()$results[[1]]$formatted_address)})
-  destination.fa <- reactive({paste0(sep = "",  "<b>Origin</b><br>", destination()$results[[1]]$formatted_address)})
+  destination.fa <- reactive({paste0(sep = "",  "<b>Destination</b><br>", destination()$results[[1]]$formatted_address)})
   
   # Create and round lat long formatting based on selected input precsision
-  
-  
   
   
   #Create reactive element that updates and maps plots to be rendered on the map
