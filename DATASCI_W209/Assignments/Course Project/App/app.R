@@ -16,6 +16,7 @@ library(memisc)
 library(dplyr)
 library(geosphere)
 library(plyr)
+library(ggplot2)
 
 #############################
 ## Functions 
@@ -79,6 +80,20 @@ decodeLine <- function(encoded){
   coords
 }
 
+deg2rad <- function(deg) return(deg*pi/180)
+
+gcd.slc <- function(long1, lat1, long2, lat2) {
+  # Convert degrees to radians
+  long1 <- deg2rad(long1)
+  lat1 <- deg2rad(lat1)
+  long2 <- deg2rad(long2)
+  lat2 <- deg2rad(lat2)
+  
+  R <- 6371.0002161 # Earth mean radius [km]
+  d <- acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2) * cos(long2-long1)) * R
+  return(d) # Distance in km
+}
+
 
 #############################
 ## Shiny UI
@@ -105,12 +120,16 @@ ui <- fluidPage(navbarPage("RoutR", id="nav",
                              
                              h2("Route Explorer"),
                              
-                             textInput(inputId = 'origin', label = 'Enter your Origin', value = "Times Square NYC", placeholder ="e.g. 222 West 23rd"),
+                             textInput(inputId = 'origin', label = 'Enter your Origin', value = "Times Square", placeholder ="e.g. 222 West 23rd"),
                              textInput(inputId = 'destination', label = 'Enter your Destination',  value = "Empire State Building", placeholder ="e.g. 2 Lexington Ave"),
-                             selectInput("precision", "Level of Zip Precision", zipPrecision, selected = zipPrecision[3]),
+                             selectInput("precision", "Level of Location Precision", zipPrecision, selected = zipPrecision[3]),
                              selectInput('layer', 'Map Layer', choices = mapLayers, selected = mapLayers[1]),
                              
-                             textOutput("route_count")
+                             htmlOutput("route_count"),
+                             plotOutput("boxtrips", height = 200),
+                             plotOutput("pricedist", height = 200)
+                        
+                        
                ),
                
                
@@ -121,7 +140,7 @@ ui <- fluidPage(navbarPage("RoutR", id="nav",
            )
   ),
   
-  tabPanel("Data explorer",
+  tabPanel("Data Explorer",
            fluidRow(
              column(3,
                     selectInput("states", "States", c("All states"="", structure(state.abb, names=state.name), "Washington, DC"="DC"), multiple=TRUE)
@@ -139,22 +158,7 @@ ui <- fluidPage(navbarPage("RoutR", id="nav",
 ## Load data for Server
 #############################
 
-load("data/trips2.rda")
-
-deg2rad <- function(deg) return(deg*pi/180)
-
-gcd.slc <- function(long1, lat1, long2, lat2) {
-  # Convert degrees to radians
-  long1 <- deg2rad(long1)
-  lat1 <- deg2rad(lat1)
-  long2 <- deg2rad(long2)
-  lat2 <- deg2rad(lat2)
-  
-  R <- 6371.0002161 # Earth mean radius [km]
-  d <- acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2) * cos(long2-long1)) * R
-  return(d) # Distance in km
-}
-
+load("data/alltrips.rda")
 
 #############################
 ## Shiny Server
@@ -167,8 +171,8 @@ server <- function(input, output) {
   destination<- reactive({geocode(input$destination, output = "all")})
   
   # Create formatted addresses for popup
-  origin.fa <- reactive({paste0(sep = "",  "<b>Origin</b><br>", origin()$results[[1]]$formatted_address)})
-  destination.fa <- reactive({paste0(sep = "",  "<b>Destination</b><br>", destination()$results[[1]]$formatted_address)})
+  origin.fa <- reactive({paste0(sep = "",  "<b>Origin</b><br>", origin()$results[[1]]$formatted_address, "<br><br><b>Trip Stats:<b>")})
+  destination.fa <- reactive({paste0(sep = "",  "<b>Destination</b><br>", destination()$results[[1]]$formatted_address, "<br><br><b>Trip Stats:<b>")})
   
   # Create and round lat long formatting based on selected input precsision
   precision <- reactive({as.numeric(as.character(cases(
@@ -176,17 +180,15 @@ server <- function(input, output) {
     '100'=input$precision==zipPrecision[2],
     '200'=input$precision==zipPrecision[3])))})
   
-  # origin.long <- reactive({as.numeric(round(origin()$results[[1]]$geometry$location$lng, precision()))})
-  # origin.lat <- reactive({as.numeric(round(origin()$results[[1]]$geometry$location$lat, precision()))})
-  
-  # destination.long <- reactive({as.numeric(round(destination()$results[[1]]$geometry$location$lng, precision()))})
-  # destination.lat <- reactive({as.numeric(round(destination()$results[[1]]$geometry$location$lat, precision()))})
+  # Grab Lat/Long pairs 
   
   origin.long <- reactive({as.numeric(origin()$results[[1]]$geometry$location$lng)})
   origin.lat <- reactive({as.numeric(origin()$results[[1]]$geometry$location$lat)})
   
   destination.long <- reactive({as.numeric(destination()$results[[1]]$geometry$location$lng)})
   destination.lat <- reactive({as.numeric(destination()$results[[1]]$geometry$location$lat)})
+  
+  # Filter Data Set Based on Precision Selected By User
   
   t<- reactive({ 
     p <- precision()
@@ -195,7 +197,7 @@ server <- function(input, output) {
     dlo <- destination.long()
     dla <- destination.lat()
     
-    t <- trips2 %>%
+    t <- alltrips %>%
       mutate(pickup_distance_away = gcd.slc(olo, ola, pickup_longitude, pickup_latitude)
             , dropoff_distance_away = gcd.slc(dlo, dla, dropoff_longitude, dropoff_latitude)
             ) %>%
@@ -203,14 +205,18 @@ server <- function(input, output) {
     t
   })
 
+  #Create route data frame based on user's input output pairs that updates and maps plots to be rendered on the map
   
-  #Create reactive element that updates and maps plots to be rendered on the map
   route_df <- reactive({decodeLine(route(input$origin, input$destination, structure = "route",
                                          output = "all")$routes[[1]]$overview_polyline$points)})
   
+  
+  # Beginning of Outputs
+  
+  # Render may 
   output$mymap <- renderLeaflet({
     leaflet() %>%
-      setView(lng = -73.985428, lat = 40.748817, zoom = 12) %>%
+      setView(lng = -73.985428, lat = 40.748817, zoom = 11) %>%
       addProviderTiles(input$layer, options = providerTileOptions(noWrap = TRUE)) %>%
       addPolylines(route_df()$lon, route_df()$lat, fill = FALSE) %>%
       addMarkers(route_df()$lon[1], route_df()$lat[1], popup = (origin.fa())) %>%
@@ -218,91 +224,37 @@ server <- function(input, output) {
                  ,popup = destination.fa()) %>%
       addCircles(route_df()$lon[1], route_df()$lat[1], radius = precision()) %>%
       addCircles(route_df()$lon[length(route_df()$lon)], route_df()$lat[length(route_df()$lon)], radius = precision()) %>%
-#       addPopups(route_df()$lon[1], route_df()$lat[1], popup = origin.fa()) %>%
-#       addPopups(route_df()$lon[length(route_df()$lon)], 
-#                 route_df()$lat[length(route_df()$lon)], popup = destination.fa()) %>%
       fitBounds(lng1 = max(route_df()$lon),lat1 = max(route_df()$lat),
                 lng2 = min(route_df()$lon),lat2 = min(route_df()$lat))
   })
   
-  output$route_count <- renderText({paste("Number of Trips: ",nrow(t()))})
   
+  output$route_count <- renderUI({HTML(paste("<b>Number of Trips:</b> ",nrow(t()),"<br><br/>"))})
+  
+  output$boxtrips <- renderPlot({
+    # If no trips are in view, don't plot
+    if (nrow(t()) == 0)
+      return(NULL)
+    
+    ggplot(t(), aes(x=vehicle_type, y=(trip_duration_seconds/60), color=vehicle_type)) + geom_boxplot() +
+      ylab("Trip Duration (Min)") + xlab("Mode of Transport") + guides(fill=FALSE) + theme(legend.position="none")
+    
+  })
+  
+  output$pricedist <- renderPlot({
+    # If no trips are in view, don't plot
+    if (nrow(t()) == 0)
+      return(NULL)
+    
+  ggplot(t(), aes(x=total_amount, colour=vehicle_type)) +
+    geom_density() +
+    geom_vline(data=t(), aes(xintercept=mean(total_amount),  colour=vehicle_type),
+               linetype="dashed", size=1) + theme(legend.position="none") + xlab("Cost ($)")
+  })
 }
-
 
 #############################
 ## Run App
 #############################
 
 shinyApp(ui = ui, server = server)
-
-# 
-# input <- "Times Square"
-# output <- "The Empire State Building"
-# 
-# precision <- 3
-# 
-# origin <- geocode(input, output = "all")
-# destination<- geocode(output, output = "all")
-# 
-# origin.long <- round(origin$results[[1]]$geometry$location$lng, precision)
-# origin.lat <- round(origin$results[[1]]$geometry$location$lat, precision)
-# 
-# destination.long <- round(destination$results[[1]]$geometry$location$lng, precision)
-# destination.lat <- round(destination$results[[1]]$geometry$location$lat, precision)
-# 
-# # Match input lat long pairs
-# df <- trips2 %>%
-#   dplyr::mutate(pickup_longitude_r = round(pickup_longitude, precision)
-#               , pickup_latitude_r = round(pickup_latitude, precision)
-#               , dropoff_longitude_r = round(dropoff_longitude, precision)
-#               , dropoff_latitude_r = round(dropoff_latitude, precision)) %>%
-#     dplyr::filter(pickup_longitude_r == origin.long,
-#                   pickup_latitude_r == origin.lat,
-#                   dropoff_longitude_r == destination.long,
-#                   dropoff_latitude_r == destination.lat)
-#                   
-# 
-# 
-# df.trips <- reactive({
-#   # Due to dplyr issue #318, we need temp variables for input values
-#   p <- precision()
-#   olo <- origin.long()
-#   ola <- origin.lat()
-#   dlo <- destination.long()
-#   dla <- destination.lat()
-#   
-#   
-
-# output$route_count <- renderText({
-#   # Apply filters
-#   p <- precision()
-#   olo <- origin.long()
-#   ola <- origin.lat()
-#   dlo <- destination.long()
-#   dla <- destination.lat()
-#   
-#     t <- trips2 %>%
-#        dplyr::mutate(pickup_longitude_r <- round(pickup_longitude, p)
-#                      , pickup_latitude_r <- round(pickup_latitude, p)
-#                      , dropoff_longitude_r <- round(dropoff_longitude, p)
-#                      , dropoff_latitude_r <- round(dropoff_latitude, p)) %>%
-#         dplyr::filter(pickup_longitude_r == olo,
-#                       pickup_latitude_r == ola,
-#                       dropoff_longitude_r == dlo,
-#                       dropoff_latitude_r == dla)
-#   
-#   length(t)})
-# }
-#   # Apply filters
-#   t <- trips2 %>%
-#     dplyr::mutate(pickup_longitude_r <- round(pickup_longitude, p)
-#                   , pickup_latitude_r <- round(pickup_latitude, p)
-#                   , dropoff_longitude_r <- round(dropoff_longitude, p)
-#                   , dropoff_latitude_r <- round(dropoff_latitude, p)) %>%
-#     dplyr::filter(pickup_longitude_r == olo,
-#                   pickup_latitude_r == ola,
-#                   dropoff_longitude_r == dlo,
-#                   dropoff_latitude_r == dla)
-#   t
-# )
