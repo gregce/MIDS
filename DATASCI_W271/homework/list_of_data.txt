@@ -1,0 +1,15 @@
+_01_lab1 - no data required 
+
+_02_hw01 - birthweight.RData
+_03_hw02 - 401k_w271.RData
+_04_hw03 - twoyear.RData
+_05_hw04 - athletics.RData
+
+_07_hw05 - data embedded in library(astra)
+_08_hw06 - INJCJC.csv
+_09_hw01 - hw07_series1.csv
+_10_hw01 - hw08_series.csv
+
+
+
+

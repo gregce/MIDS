@@ -1,0 +1,224 @@
+gregce-mbp:week2 gregce$ slcli vs list
+:..........:............:................:...............:............:........:
+:    id    :  hostname  :   primary_ip   :   backend_ip  : datacenter : action :
+:..........:............:................:...............:............:........:
+: 19332225 : saltmaster : 169.54.199.246 : 10.121.163.99 :   dal09    :   -    :
+:..........:............:................:...............:............:........:
+gregce-mbp:week2 gregce$ ssh root@169.54.199.246
+Last login: Mon May 16 17:32:37 2016 from 208.185.144.160
+[root@mids ~]# yum install -y python-pip && pip install SoftLayer apache-libcloud
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * epel: fedora-epel.mirror.lstn.net
+Resolving Dependencies
+--> Running transaction check
+---> Package python-pip.noarch 0:7.1.0-1.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================================================================================================================
+ Package                                     Arch                                    Version                                        Repository                             Size
+================================================================================================================================================================================
+Installing:
+ python-pip                                  noarch                                  7.1.0-1.el7                                    epel                                  1.5 M
+
+Transaction Summary
+================================================================================================================================================================================
+Install  1 Package
+
+Total download size: 1.5 M
+Installed size: 6.6 M
+Downloading packages:
+python-pip-7.1.0-1.el7.noarch.rpm                                                                                                                        | 1.5 MB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : python-pip-7.1.0-1.el7.noarch                                                                                                                                1/1 
+  Verifying  : python-pip-7.1.0-1.el7.noarch                                                                                                                                1/1 
+
+Installed:
+  python-pip.noarch 0:7.1.0-1.el7                                                                                                                                               
+
+Complete!
+You are using pip version 7.1.0, however version 8.1.2 is available.
+You should consider upgrading via the 'pip install --upgrade pip' command.
+Collecting SoftLayer
+  Downloading SoftLayer-5.1.0-py2.py3-none-any.whl (272kB)
+    100% |████████████████████████████████| 274kB 1.6MB/s 
+Collecting apache-libcloud
+  Downloading apache_libcloud-0.20.1-py2.py3-none-any.whl (1.9MB)
+    100% |████████████████████████████████| 1.9MB 251kB/s 
+Requirement already satisfied (use --upgrade to upgrade): six>=1.7.0 in /usr/lib/python2.7/site-packages (from SoftLayer)
+Collecting click>=5 (from SoftLayer)
+  Downloading click-6.6.tar.gz (283kB)
+    100% |████████████████████████████████| 286kB 1.5MB/s 
+Collecting prettytable>=0.7.0 (from SoftLayer)
+  Downloading prettytable-0.7.2.zip
+Collecting pygments>=2.0.0 (from SoftLayer)
+  Downloading Pygments-2.1.3-py2.py3-none-any.whl (755kB)
+    100% |████████████████████████████████| 757kB 574kB/s 
+Collecting prompt-toolkit>=0.53 (from SoftLayer)
+  Downloading prompt_toolkit-1.0.0-py2-none-any.whl (223kB)
+    100% |████████████████████████████████| 225kB 2.0MB/s 
+Collecting requests>=2.7.0 (from SoftLayer)
+  Downloading requests-2.10.0-py2.py3-none-any.whl (506kB)
+    100% |████████████████████████████████| 507kB 902kB/s 
+Requirement already satisfied (use --upgrade to upgrade): backports.ssl-match-hostname in /usr/lib/python2.7/site-packages (from apache-libcloud)
+Collecting wcwidth (from prompt-toolkit>=0.53->SoftLayer)
+  Downloading wcwidth-0.1.6-py2.py3-none-any.whl
+Installing collected packages: click, prettytable, pygments, wcwidth, prompt-toolkit, requests, SoftLayer, apache-libcloud
+  Running setup.py install for click
+  Running setup.py install for prettytable
+  Found existing installation: requests 2.6.0
+    DEPRECATION: Uninstalling a distutils installed project (requests) has been deprecated and will be removed in a future version. This is due to the fact that uninstalling a distutils project will only partially uninstall the project.
+    Uninstalling requests-2.6.0:
+      Successfully uninstalled requests-2.6.0
+Successfully installed SoftLayer-5.1.0 apache-libcloud-0.20.1 click-6.6 prettytable-0.7.2 prompt-toolkit-1.0.0 pygments-2.1.3 requests-2.10.0 wcwidth-0.1.6
+[root@mids ~]# mkdir -p /etc/salt/{cloud.providers.d,cloud.profiles.d}
+[root@mids ~]# cd /etc
+[root@mids etc]# ls
+adjtime                  crontab                  favicon.png  init.d          machine-id                passwd-         rc5.d           shadow              tmpfiles.d
+aliases                  cron.weekly              filesystems  inittab         magic                     pkcs11          rc6.d           shadow-             tuned
+aliases.db               crypttab                 firewalld    inputrc         makedumpfile.conf.sample  pki             rc.d            shells              udev
+alternatives             csh.cshrc                fstab        iproute2        man_db.conf               plymouth        rc.local        skel                vconsole.conf
+anacrontab               csh.login                gcrypt       issue           mke2fs.conf               pm              redhat-release  ssh                 virc
+asound.conf              dbus-1                   gnupg        issue.net       modprobe.d                polkit-1        resolv.conf     ssl                 wgetrc
+audisp                   default                  GREP_COLORS  kdump.conf      modules-load.d            popt.d          rpc             statetab            wpa_supplicant
+audit                    depmod.d                 groff        kernel          motd                      postfix         rpm             statetab.d          X11
+avahi                    dhcp                     group        krb5.conf       mtab                      ppp             rsyncd.conf     sudo.conf           xdg
+bash_completion.d        DIR_COLORS               group-       ld.so.cache     my.cnf                    prelink.conf.d  rsyslog.conf    sudoers             xinetd.d
+bashrc                   DIR_COLORS.256color      grub2.cfg    ld.so.conf      my.cnf.d                  printcap        rsyslog.d       sudoers.d           yum
+binfmt.d                 DIR_COLORS.lightbgcolor  grub.d       ld.so.conf.d    NetworkManager            profile         rwtab           sudo-ldap.conf      yum.conf
+centos-release           dnsmasq.conf             gshadow      libaudit.conf   networks                  profile.d       rwtab.d         sysconfig           yum.repos.d
+centos-release-upstream  dnsmasq.d                gshadow-     libnl           nsswitch.conf             protocols       salt            sysctl.conf
+chkconfig.d              dracut.conf              gss          libuser.conf    nsswitch.conf.bak         python          sasl2           sysctl.d
+cron.d                   dracut.conf.d            host.conf    locale.conf     openldap                  rc0.d           securetty       systemd
+cron.daily               e2fsck.conf              hostname     localtime       opt                       rc1.d           security        system-release
+cron.deny                environment              hosts        login.defs      os-release                rc2.d           selinux         system-release-cpe
+cron.hourly              ethertypes               hosts.allow  logrotate.conf  pam.d                     rc3.d           services        tcsd.conf
+cron.monthly             exports                  hosts.deny   logrotate.d     passwd                    rc4.d           sestatus.conf   terminfo
+[root@mids etc]# cd salt
+[root@mids salt]# ls
+cloud.profiles.d  cloud.providers.d  master  minion  minion.d  minion_id  pki
+[root@mids salt]# cat > /etc/salt/cloud.providers.d/softlayer.conf
+
+
+
+^X
+^C
+[root@mids salt]# ls
+cloud.profiles.d  cloud.providers.d  master  minion  minion.d  minion_id  pki
+[root@mids salt]# nano
+-bash: nano: command not found
+[root@mids salt]# yum install nano
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * epel: fedora-epel.mirror.lstn.net
+Resolving Dependencies
+--> Running transaction check
+---> Package nano.x86_64 0:2.3.1-10.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================================================================================================================
+ Package                                Arch                                     Version                                           Repository                              Size
+================================================================================================================================================================================
+Installing:
+ nano                                   x86_64                                   2.3.1-10.el7                                      base                                   440 k
+
+Transaction Summary
+================================================================================================================================================================================
+Install  1 Package
+
+Total download size: 440 k
+Installed size: 1.6 M
+Is this ok [y/d/N]: y
+Downloading packages:
+nano-2.3.1-10.el7.x86_64.rpm                                                                                                                             | 440 kB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : nano-2.3.1-10.el7.x86_64                                                                                                                                     1/1 
+  Verifying  : nano-2.3.1-10.el7.x86_64                                                                                                                                     1/1 
+
+Installed:
+  nano.x86_64 0:2.3.1-10.el7                                                                                                                                                    
+
+Complete!
+[root@mids salt]# nano
+[root@mids salt]# 
+[root@mids salt]# ls
+cloud.profiles.d  cloud.providers.d  master  minion  minion.d  minion_id  pki
+[root@mids salt]# cd cloud.providers.d/
+[root@mids cloud.providers.d]# ls
+softlayer.conf
+[root@mids cloud.providers.d]# nano softlayer.conf 
+[root@mids cloud.providers.d]# cat softlayer.conf 
+sl:
+  minion:
+    master: 169.54.199.246
+  user: SL1011601
+  apikey: 8881258438c299982080c7493a7761e1bcd49967055677b8ca1055cd2329d4e0
+  provider: softlayer
+  script: bootstrap-salt
+  script_args: -Z git 2015.5
+  delete_sshkeys: True
+  display_ssh_output: False
+  wait_for_ip_timeout: 1800
+  ssh_connect_timeout: 1200
+  wait_for_fun_timeout: 1200
+[root@mids cloud.providers.d]# ls
+softlayer.conf
+[root@mids cloud.providers.d]# cd ..
+[root@mids salt]# ls
+cloud.profiles.d  cloud.providers.d  master  minion  minion.d  minion_id  pki
+[root@mids salt]# cd cloud.profiles.d/
+[root@mids cloud.profiles.d]# ls
+[root@mids cloud.profiles.d]# nano softlayer.conf
+[root@mids cloud.profiles.d]# cd ~
+[root@mids ~]# ls
+[root@mids ~]# salt-cloud -p sl_centos7_small <mytestvs>
+-bash: syntax error near unexpected token `newline'
+[root@mids ~]# salt-cloud -p sl_centos7_small dhost
+[INFO    ] salt-cloud starting
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] Creating Cloud VM dhost
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Virtual_Guest
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account
+[INFO    ] POST https://api.softlayer.com/xmlrpc/v3.1/SoftLayer_Account

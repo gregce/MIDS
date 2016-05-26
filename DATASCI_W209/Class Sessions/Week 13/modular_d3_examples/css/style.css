@@ -1,0 +1,24 @@
+/* some simple layouts, no scss */
+
+.outer {
+    margin-top: 100px;
+}
+
+.block {
+    padding-left: 40px;
+    float: left;
+}
+
+/* better colors, put the text inside bars */
+/* styles from http://bost.ocks.org/mike/bar/2/ */
+
+.chart rect {
+  fill: steelblue;
+}
+
+.chart text {
+  fill: white;
+  font: 10px sans-serif;
+  text-anchor: end;
+}
+

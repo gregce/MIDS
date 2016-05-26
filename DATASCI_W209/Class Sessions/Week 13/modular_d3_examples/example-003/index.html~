@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>my dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/d3.js"></script>
+  </head>
+  <body>
+    <div class="outer">
+      <div class="block">
+        <div id="chart01">
+          <h3>Chart 1:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart02">
+          <h3>Chart 2:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart03">
+          <h3>Chart 3:</h3>
+        </div>
+      </div>
+    </div>
+  </body>
+  
+    <!-- page content -->
+    <script type="text/javascript">
+      var data = [4, 8, 15, 16, 23, 42];
+
+      var width = 300;
+      var barHeight = 20;
+
+      var x = d3.scale.linear()
+      .domain([0, d3.max(data)])
+      .range([0, width]);
+
+      var chart = d3.select("#chart01")
+      .append("svg")
+      .attr("class", "chart")
+      .attr("width", width)
+      .attr("height", barHeight * data.length);
+
+      var bar = chart.selectAll("g")
+      .data(data)
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+      bar.append("rect")
+      .attr("width", x)
+      .attr("height", barHeight - 1);
+
+      bar.append("text")
+      .attr("x", function(d) { return x(d) - 3; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+
+      var data2 = [4, 8, 15, 16, 23, 42];
+
+      var width2 = 200;
+      var barHeight2 = 15;
+
+      var x2 = d3.scale.linear()
+      .domain([0, d3.max(data2)])
+      .range([0, width2]);
+
+      var chart2 = d3.select("#chart02")
+      .append("svg")
+      .attr("class", "chart")
+      .attr("width", width2)
+      .attr("height", barHeight2 * data2.length);
+
+      var bar2 = chart2.selectAll("g")
+      .data(data2)
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight2 + ")"; });
+
+      bar2.append("rect")
+      .attr("width", x2)
+      .attr("height", barHeight2 - 1);
+
+      bar2.append("text")
+      .attr("x", function(d) { return x2(d) - 3; })
+      .attr("y", barHeight2 / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+
+      var data3 = [4, 8, 15, 16, 23, 42];
+
+      var width3 = 400;
+      var barHeight3 = 30;
+
+      var x3 = d3.scale.linear()
+      .domain([0, d3.max(data3)])
+      .range([0, width3]);
+
+      var chart3 = d3.select("#chart03")
+      .append("svg")
+      .attr("class", "chart")
+      .attr("width", width3)
+      .attr("height", barHeight3 * data3.length);
+
+      var bar3 = chart3.selectAll("g")
+      .data(data3)
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight3 + ")"; });
+
+      bar3.append("rect")
+      .attr("width", x3)
+      .attr("height", barHeight3 - 1);
+
+      bar3.append("text")
+      .attr("x", function(d) { return x3(d) - 3; })
+      .attr("y", barHeight3 / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+    </script>
+</html>

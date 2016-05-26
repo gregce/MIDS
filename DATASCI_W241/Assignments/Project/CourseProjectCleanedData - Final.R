@@ -6,18 +6,18 @@
 rm( list = ls())
 
 ## Set Working Directory
-setwd("MIDS/DATASCI_W241/Assignments/Project/")
+setwd("/Users/gregce/MIDS/DATASCI_W241/Assignments/Project/")
 
 ## Load relevant libraries
-library(pryr)
+# library(pryr)
 library(memisc)
 library(stringr)
-library(stargazer)
+# library(stargazer)
 library(dplyr)  
-library(ggplot2)
-library(data.table)
+# library(ggplot2)
+# library(data.table)
 library(lubridate)
-library(RDSTK)
+# library(RDSTK)
 
 ## Define Relevant Functions
 
@@ -42,7 +42,7 @@ pd.raw <- read.csv("Full Data Collection - Cleaned.csv", header=TRUE, stringsAsF
 #remove dups
 by_ips <- pd.raw %>%
   slice(2:nrow(pd.raw)) %>%
-  select(V6) %>%
+  #select(V6) %>%
   mutate(ip=V6) %>%
   group_by(V6) %>%
   summarise(bpcnt = count(ip)) 
@@ -104,7 +104,7 @@ pd.gen <- pd.raw %>%
   #Only keep observations that finished
   filter(V10==1) %>%
   ##only retain IPAddress & "gen_" columns
-  select(IPAddress = V6, starts_with("gen_"))
+  dplyr::select(IPAddress = V6, starts_with("gen_"))
 
 
 ## IQ Test Information DF
@@ -123,13 +123,13 @@ pd.iq <- pd.raw %>%
          , iq_PageTwoNumberClicks = as.numeric(Q57_4)) %>%
   filter(V10==1) %>%
   ##only retain IPAddress & "iq_" columns
-  select(IPAddress = V6, starts_with("iq_"))
+  dplyr::select(IPAddress = V6, starts_with("iq_"))
          
   
 ## Experiment 1 Information DF
 
 pd.exp1 <- pd.raw %>%
-  slice(2:nrow(pd.raw)) %>%
+  dplyr::slice(2:nrow(pd.raw)) %>%
   mutate(  temp_Treat1 = ifelse(Q19==1,"Nonordered chart junk",NA)
           ,temp_Treat2 = ifelse(Q20==1,"Nonordered table",NA)
           ,temp_Treat3 = ifelse(Q21==1,"Nonordered tufte",NA)
@@ -157,14 +157,14 @@ pd.exp1 <- pd.raw %>%
   ) %>%
   filter(V10==1) %>%
   ##only retain IPAddress & "iq_" columns
-  select(IPAddress = V6, starts_with("exp1_"))
+  dplyr::select(IPAddress = V6, starts_with("exp1_"))
 
 
 ## Recall Information DF
 ## Could include Treatment but this can be joined on if necessary
 
 pd.recall <- pd.raw %>%
-  slice(2:nrow(pd.raw)) %>%
+  dplyr::slice(2:nrow(pd.raw)) %>%
   mutate(    recall_Question1Response = Q31
             ,recall_Question1CorrectAnswer = ifelse(Q31==6,1,0)
             ,recall_Question2Response = Q32
@@ -176,13 +176,13 @@ pd.recall <- pd.raw %>%
             ,recall_PageFiveNumberClicks = as.numeric(Q34_4)) %>%
   filter(V10==1) %>%
   ##only retain IPAddress & "iq_" columns
-  select(IPAddress = V6, starts_with("recall_"))
+  dplyr::select(IPAddress = V6, starts_with("recall_"))
 
 
 ## Experiment 2 Information DF
 
 pd.exp2 <- pd.raw %>%
-  slice(2:nrow(pd.raw)) %>%
+  dplyr::slice(2:nrow(pd.raw)) %>%
   mutate(  temp_Treat1 = ifelse(Q40==1,"Log scatterplot",NA)
            ,temp_Treat2 = ifelse(Q58==1,"No Log scatterplot",NA)
            ,temp_Treat3 = ifelse(Q42==1,"Unordered Table",NA)
@@ -208,13 +208,13 @@ pd.exp2 <- pd.raw %>%
   ) %>%
   filter(V10==1) %>%
   ##only retain IPAddress & "iq_" columns
-  select(IPAddress = V6, starts_with("exp2_"))
+  dplyr::select(IPAddress = V6, starts_with("exp2_"))
 
 ## Final Questions Information DF
 
 
 pd.fq <- pd.raw %>%
-  slice(2:nrow(pd.raw)) %>%
+  dplyr::slice(2:nrow(pd.raw)) %>%
   mutate(finalq_Question1Response = Q38
          ,finalq_Question1CorrectAnswer = ifelse(Q38==5,1,0)
          ,finalq_Question2Response = Q37_1
@@ -223,7 +223,7 @@ pd.fq <- pd.raw %>%
   ) %>%
   filter(V10==1) %>%
   ##only retain IPAddress & "iq_" columns
-  select(IPAddress = V6, starts_with("finalq_"))
+  dplyr::select(IPAddress = V6, starts_with("finalq_"))
 
 
 ##############################
@@ -338,7 +338,7 @@ str(d$gen_Education)
 
 ##### Check conversions by treatment w/ dplyr
 d.group <- d %>%
-  select(email, converted) %>%
+  dplyr::select(email, converted) %>%
   group_by(email) %>%
   summarise(mean(converted))
 d.group

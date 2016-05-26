@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.counties {
+  fill: none;
+}
+
+.states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+/* preset color values */
+.color-0 { fill:rgb(247,251,255); }
+.color-1 { fill:rgb(222,235,247); }
+.color-2 { fill:rgb(198,219,239); }
+.color-3 { fill:rgb(158,202,225); }
+.color-4 { fill:rgb(107,174,214); }
+.color-5 { fill:rgb(66,146,198); }
+.color-6 { fill:rgb(33,113,181); }
+.color-7 { fill:rgb(8,81,156); }
+.color-8 { fill:rgb(8,48,107); }
+
+</style>
+<body>
+<script src="d3.v3.min.js"></script>
+<script src="queue.v1.min.js"></script>
+<script src="topojson.v1.min.js"></script>
+<script>
+
+var width = 960,
+    height = 600;
+
+var rateById = d3.map();
+
+var projection = d3.geo.albersUsa()
+    .scale(1280)
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+queue()
+    .defer(d3.json, "us.json")
+    .defer(d3.tsv, "unemployment.tsv", function(d) { rateById.set(d.id, +d.rate); })
+    .await(ready);
+
+var categories = d3.scale.category20c();
+
+var customcategories = d3.scale.ordinal()
+  .range(['#aec7e8','#ffbb78', '#98df8a', '#ff9896', '#c5b0d5', '#c49c94', '#f7b6d2', '#c7c7c7', '#dbdb8d', '#9edae5']);
+
+var quantize = d3.scale.quantize()
+    .domain([0, .277])
+    .range(d3.range(9).map(function(i) { return "color-" + i; }));
+
+var thresholds = d3.scale.threshold()
+    .domain([.02, .04, .06, .08, .10])
+    .range(["#f2f0f7", "#dadaeb", "#bcbddc", "#9e9ac8", "#756bb1", "#54278f"]);
+
+function ready(error, us) {
+  //cobbled together from http://bl.ocks.org/mbostock/3306362 and http://bl.ocks.org/mbostock/4060606
+  if (error) throw error;
+
+  svg.append("g")
+      .attr("class", "counties")
+    .selectAll("path")
+      .data(topojson.feature(us, us.objects.counties).features)
+    .enter().append("path")
+      /* using categorical scale, d3.scale.category20b() -- note that this reuses the colors because there are 50 ids */
+      /* .style("fill", function(d) { return(categories(d.id)) })  */
+      /* using custom categorical scale, lightest colors from category20 */
+      /*.style("fill", function(d) { return(customcategories(d.id)) })
+      /* using d3.scale.quantize and preselected colors in css classes */
+      .attr("class", function(d) { return quantize(rateById.get(d.id)); })
+      /* using d3.scale.threshold */
+      /* .style("fill", function(d) { return thresholds(rateById.get(d.id))}) */
+      /* using lightness to calculate the fill color */
+      /* .style("fill", function(d) { return d3.hsl(200, 0.5, (1-rateById.get(d.id)/.2)); }) */
+      .attr("d", path);
+
+  svg.append("path")
+      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "states")
+      .attr("d", path);
+}
+
+
+
+</script>

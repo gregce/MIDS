@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>my dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/d3.js"></script>
+  </head>
+  <body>
+    <div class="outer">
+      <div class="block">
+        <div id="chart01">
+          <h3>Chart 1:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart02">
+          <h3>Chart 2:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart03">
+          <h3>Chart 3:</h3>
+        </div>
+      </div>
+    </div>
+  </body>
+  
+    <!-- page content -->
+    <script type="text/javascript">
+      var barchart = function(selection,width,barHeight) {
+      var data = [4, 8, 15, 16, 23, 42];
+
+      var x = d3.scale.linear()
+      .domain([0, d3.max(data)])
+      .range([0, width]);
+
+      var chart = selection.append("svg")
+      .attr("class", "chart")
+      .attr("width", width)
+      .attr("height", barHeight * data.length);
+
+      var bar = chart.selectAll("g")
+      .data(data)
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+      bar.append("rect")
+      .attr("width", x)
+      .attr("height", barHeight - 1);
+
+      bar.append("text")
+      .attr("x", function(d) { return x(d) - 3; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+      }
+
+      barchart(d3.select("#chart01"),300,20);
+      barchart(d3.select("#chart02"),200,15);
+      barchart(d3.select("#chart03"),400,30);
+    </script>
+</html>

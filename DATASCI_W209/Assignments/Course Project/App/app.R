@@ -17,6 +17,7 @@ library(dplyr)
 library(geosphere)
 library(plyr)
 library(ggplot2)
+library(htmltools)
 
 #############################
 ## Functions 
@@ -80,6 +81,8 @@ decodeLine <- function(encoded){
   coords
 }
 
+# 
+
 deg2rad <- function(deg) return(deg*pi/180)
 
 gcd.slc <- function(long1, lat1, long2, lat2) {
@@ -99,11 +102,22 @@ gcd.slc <- function(long1, lat1, long2, lat2) {
 ## Shiny UI
 #############################
 
+#Initialize input control selection vectors
 mapLayers = c("OpenStreetMap.Mapnik","Stamen.TonerLite","Esri.WorldStreetMap","CartoDB.DarkMatter")
+
 zipPrecision = c("Very Precise", "Precise", "Semi Precise")
 
 
-ui <- fluidPage(navbarPage("RoutR", id="nav",
+ui <- fluidPage(
+  fluidPage(
+    list(tags$head(HTML('<link rel="icon", href="routr.png", 
+                        type="image/png" />'))),
+    div(style="padding: 1px 0px; width: '100%'",
+        titlePanel(
+          title="", windowTitle="My Window Title"
+        )
+    )),
+  navbarPage(title=div(img(src="routr.png",  height = 25, width = 25), "RoutR"), id="nav",
   tabPanel("Map",
            div(class="outer",
                
@@ -132,8 +146,7 @@ ui <- fluidPage(navbarPage("RoutR", id="nav",
                         
                ),
                
-               
-               
+          
                tags$div(id="cite",
                         'Data compiled from ', tags$em('NYC FOIL'), ' by James, Greg & Drew'
                )
@@ -148,7 +161,59 @@ ui <- fluidPage(navbarPage("RoutR", id="nav",
            )
           ),
   tabPanel("About",
-           fluidRow(" (a) an interactive visualization, and (b) explanatory text to accompany the interactive visualization. Text should include the names of team members, the visualization’s goals, its intended audience, and the data source(s). This may be included as an About page or integrated with the visualization itself, as appropriate."
+           titlePanel("About RoutR"),
+           sidebarLayout(
+             sidebarPanel(
+               p("RoutR leverages NYC open data to help people in NYC find and evaluate optimal transportation options given a start and end destination"),
+               code('[Enter Github location]'),
+               br(),
+               br(),
+               img(src = "routr.png", height = 25, width = 25),
+               "RoutR is a product of ", a("MIDS", 
+                                          href = "https://datascience.berkeley.edu/")
+             ),
+             mainPanel(h2("Team"),
+               p("RoutR was made using ", a("Shiny", 
+                                                 href = "http://www.rstudio.com/shiny"), "by the following three fine fellows:"),
+               fluidRow(
+                 column(3, align="center",
+                        img(src = "greg.png", height = 175, width = 175),
+                        br(),
+                        a("Greg Ceccarelli",href = "https://www.linkedin.com/in/gregceccarelli")
+                 ),
+                 column(3, align="center",
+                        img(src = "drew.png", height = 175, width = 175),
+                        br(),
+                        a("Drew Plant",href = "https://www.linkedin.com/in/drewplant")
+                 ),
+                 column(3, align="center",
+                        img(src = "james.png", height = 175, width = 175),
+                        br(),
+                        a("James Gray",href = "https://www.linkedin.com/in/jamesgray")
+                 ),
+                 column(3)),
+            
+               h2("Features & Datasources"),
+               tags$ul(
+                 tags$li(strong("Implements:")),
+                    tags$ul(
+                      tags$li("A reactive leaftlet based mapping layer which automatically geocodes user input changes"),
+                      tags$li("A floating route explorer with integrated ggplot2 graphics"),
+                      tags$li("A dynamic data explorer which reveals the data corresponding to the currently plotted route")
+                    ),
+                br(),
+                 tags$li(strong("Features a", em("significantly downsourced set of data"), " sourced from")),
+                 tags$ul(
+                   tags$li("Records of yellow & green trips provided by ", a("The New York Taxi & Limosine Corporation", href = "http://www.nyc.gov/html/tlc/html/passenger/records.shtml")),
+                   tags$li("Records of Uber pickups provided through the ", a("Freedom of Information Law", href = "https://github.com/fivethirtyeight/uber-tlc-foil-response")),
+                   tags$li("Records of NYC bike rentals provided by", a("Citibike", href = "https://www.citibikenyc.com/system-data"))
+                 )
+                 
+               ),
+               h3("Acknowledgements"),
+               p("The team would like to thank", a("Tood W. Schneider",href = "http://toddwschneider.com/"), "for providing ample inspiration on his blog as well as a ", a("github", href= "https://github.com/toddwschneider/nyc-taxi-data")
+                 ,"repo with scripts that made the data acqusition process fairly painless")
+             )
            )
   )
 )
@@ -219,9 +284,9 @@ server <- function(input, output) {
       setView(lng = -73.985428, lat = 40.748817, zoom = 11) %>%
       addProviderTiles(input$layer, options = providerTileOptions(noWrap = TRUE)) %>%
       addPolylines(route_df()$lon, route_df()$lat, fill = FALSE) %>%
-      addMarkers(route_df()$lon[1], route_df()$lat[1], popup = (origin.fa())) %>%
+      addMarkers(route_df()$lon[1], route_df()$lat[1], popup = htmlEscape(origin.fa())) %>%
       addMarkers(route_df()$lon[length(route_df()$lon)], route_df()$lat[length(route_df()$lon)]
-                 ,popup = destination.fa()) %>%
+                 ,popup = htmlEscape(destination.fa())) %>%
       addCircles(route_df()$lon[1], route_df()$lat[1], radius = precision()) %>%
       addCircles(route_df()$lon[length(route_df()$lon)], route_df()$lat[length(route_df()$lon)], radius = precision()) %>%
       fitBounds(lng1 = max(route_df()$lon),lat1 = max(route_df()$lat),

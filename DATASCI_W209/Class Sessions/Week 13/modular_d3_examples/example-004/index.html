@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>my dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/d3.js"></script>
+  </head>
+  <body>
+    <div class="outer">
+      <div class="block">
+        <div id="chart01">
+          <h3>Chart 1:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart02">
+          <h3>Chart 2:</h3>
+        </div>
+      </div>
+      <div class="block">
+        <div id="chart03">
+          <h3>Chart 3:</h3>
+        </div>
+      </div>
+    </div>
+  </body>
+  
+    <!-- page content -->
+    <script type="text/javascript">
+      // declare the public object
+      var myfunctions = myfunctions || {};
+      // now we can use this object to build our extensible barchart
+      myfunctions.barchart = function() {
+      // we have default values still
+      var data = [4, 8, 15, 16, 23, 42];
+      var _data = function(_) {
+      if (!arguments.length) return data;
+      data = _;
+      return myfunctions.barchart;
+      }
+      var width = 300;
+      var _width = function(_) {
+      if (!arguments.length) return width;
+      width = _;
+      return myfunctions.barchart;
+      }
+      var barHeight = 20;
+      var _barHeight = function(_) {
+      if (!arguments.length) return barHeight;
+      barHeight = _;
+      return myfunctions.barchart;
+      }
+
+      var _plot = function(selection) {
+      var x = d3.scale.linear()
+      .domain([0, d3.max(data)])
+      .range([0, width]);
+
+      // clear current svgs (this is optional)
+      selection.selectAll("svg").remove();
+
+      var chart = selection.append("svg")
+      .attr("class", "chart")
+      .attr("width", width)
+      .attr("height", barHeight * data.length);
+
+      var bar = chart.selectAll("g")
+      .data(data)
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+      bar.append("rect")
+      .attr("width", x)
+      .attr("height", barHeight - 1);
+
+      bar.append("text")
+      .attr("x", function(d) { return x(d) - 3; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+      }
+
+      var public = {"plot": _plot,
+      "data": _data,
+      "width": _width,
+      "barHeight": _barHeight,
+      };
+
+      return public;
+      }();
+
+      var mychart1 = myfunctions.barchart.plot(d3.select("#chart01"));
+      var mychart2 = myfunctions.barchart.width(200).barHeight(15).plot(d3.select("#chart02"));
+      var mychart3 = myfunctions.barchart.width(400).barHeight(30).data([8,3,4,17]).plot(d3.select("#chart03"));
+    </script>
+</html>
